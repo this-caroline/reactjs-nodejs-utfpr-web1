@@ -3,13 +3,77 @@ import React, {
   useEffect,
   useState
 } from 'react';
+import { useDispatch } from 'react-redux';
 
 import styles from './Menu.module.css';
 import MobileMenu from './MobileMenu';
+import { Creators as AuthActions } from '../../../store/ducks/auth/reducer';
+import { withRouter } from 'react-router';
 
 const maxW = 755;
+const menuItems = [
+  {
+    id: 1,
+    title: 'Click to manage appointments',
+    label: 'Appointments',
+    path: '/appointments'
+  },
+  {
+    id: 2,
+    title: 'Click to manage patients',
+    label: 'Patients',
+    path: '/patients'
+  },
+  {
+    id: 3,
+    title: 'Click to manage insurances',
+    label: 'Insurances',
+    path: '/insurances'
+  },
+  {
+    id: 4,
+    title: 'Click to get help',
+    label: 'Help',
+    path: '/help'
+  },
+  {
+    id: 5,
+    title: 'Click to sign out',
+    label: 'Logout',
+    path: '/logout'
+  },
+];
 
-const Menu = () => {
+const Nav = ({ history }) => {
+  const dispatch = useDispatch();
+
+  return (
+    <nav>
+      <ul>
+        {menuItems.map((item) => (
+          <li
+            key={item.id}
+            onClick={() => {
+              if (item.path === '/logout') {
+                localStorage.clear();
+                dispatch(AuthActions.logout());
+                return history.push('/login');
+              }
+
+              return history.push(item.path);
+            }}
+            title={item.title}
+            style={{ cursor: 'pointer' }}
+          >
+            {item.label}
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};
+
+const Menu = ({ history }) => {
   const [mobileMenu, setMobileMenu] = useState(window.innerWidth < maxW);
   const [displayMenu, setDisplayMenu] = useState(false);
 
@@ -35,25 +99,19 @@ const Menu = () => {
       {displayMenu &&
         <React.Fragment>
           <div className={styles.Backdrop} onClick={() => setDisplayMenu(false)} />
-          <div className={styles.HamburgerMenuContent}>Hello</div>
+          <div className={styles.HamburgerMenuContent}>
+            <Nav history={history} />
+          </div>
         </React.Fragment>
       }
 
-      {!mobileMenu
-        ? (
-          <nav className={styles.MainMenu}>
-            <ul>
-              <li>Appointments</li>
-              <li>Patients</li>
-              <li>Insurances</li>
-              <li>Help</li>
-              <li>Logout</li>
-            </ul>
-          </nav>
-        ) : <MobileMenu displayMenuItems={() => setDisplayMenu(true)} />
-      }
+      {!mobileMenu ? (
+        <div className={styles.MainMenu}>
+          <Nav history={history} />
+        </div>
+      ) : <MobileMenu displayMenuItems={() => setDisplayMenu(true)} />}
     </>
   );
 };
 
-export default Menu;
+export default withRouter(Menu);

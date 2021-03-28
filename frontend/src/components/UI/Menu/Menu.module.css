@@ -30,7 +30,6 @@
   opacity: .5;
   top: 0;
   z-index: 10;
-  /* overflow: scroll; */
 }
 
 .HamburgerMenuContent {
@@ -39,13 +38,24 @@
   border-right: 1px solid #2f333b;
   color: #fff;
   height: 100vh;
-  /* width: 330px; */
   min-width: 260px;
   position: fixed;
   overflow: auto;
   opacity: 1;
   z-index: 11;
   padding: 10px;
+}
+
+.HamburgerMenuContent ul li {
+  margin-bottom: 10px;
+}
+
+.HamburgerMenuContent ul {
+  margin-top: 15px;
+}
+
+.HamburgerMenuContent ul li:last-child {
+  margin-bottom: 0px;
 }
 
 @media (max-width: 755px) {
