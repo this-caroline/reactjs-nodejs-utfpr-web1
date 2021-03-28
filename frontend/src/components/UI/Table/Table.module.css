@@ -1,0 +1,37 @@
+.Table {
+  box-shadow: 1px 0px 5px rgb(221, 221, 221);
+}
+
+.Table {
+  border: 1px solid rgb(221, 221, 221);
+}
+
+.Table:hover {
+  background-color: rgb(226, 248, 239);
+}
+
+.Table thead {
+  background-color: rgb(191, 215, 236);
+}
+
+.Table tbody tr {
+  background-color: rgb(245, 245, 245);
+}
+
+@media (max-width: 500px) {
+  .Table {
+    padding: 2%;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 540px) {
+  .Table h4 {
+    font-size: 15px;
+  }
+
+  .Table svg {
+    width: 17px;
+    height: 17px;
+  }
+}
