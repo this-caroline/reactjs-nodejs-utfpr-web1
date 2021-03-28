@@ -1,0 +1,9 @@
+.Card {
+  max-width: 400px;
+  margin: auto;
+}
+
+.CardBody {
+  box-shadow: 2px 1px 5px rgb(216, 216, 216);
+  padding: 30px;
+}

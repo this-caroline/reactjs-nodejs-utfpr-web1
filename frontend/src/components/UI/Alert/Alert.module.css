@@ -1,0 +1,13 @@
+.Message {
+  font-size: .85rem;
+}
+
+@media (max-width: 400px) {
+  .Message {
+    font-size: .8rem;
+  }
+
+  .Title {
+    font-size: .85rem;
+  }
+}
