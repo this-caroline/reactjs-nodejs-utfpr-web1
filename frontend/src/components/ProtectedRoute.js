@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { checkAuth } from '../services/requests/auth';
 import { Creators as AuthActions } from '../store/ducks/auth/reducer';
 import ProgressBar from './UI/ProgressBar';
+import Menu from './UI/Menu';
 
 const ProtectedRoute = (props) => {
   const { component: Component, isPrivate = false, ...rest } = props;
@@ -43,7 +44,12 @@ const ProtectedRoute = (props) => {
   const getComponent = (routeProps) => {
     if (isPrivate) {
       if (isAuthenticated) {
-        return <Component {...routeProps} />;
+        return (
+          <div>
+            <Menu />
+            <Component {...routeProps} />
+          </div>
+        );
       }
 
       return <Redirect to="/login" />;

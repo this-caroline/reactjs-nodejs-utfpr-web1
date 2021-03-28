@@ -1,0 +1,15 @@
+.Container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px 10px;
+  background-color: #669de6;
+  margin-bottom: 10px;
+}
+
+.Icon {
+  color: #FFF;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
