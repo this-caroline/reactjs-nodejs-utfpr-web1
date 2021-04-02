@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Patient.hasOne(models.Address);
       Patient.hasMany(models.Appointment);
+      Patient.belongsTo(models.User);
     }
   };
   Patient.init({

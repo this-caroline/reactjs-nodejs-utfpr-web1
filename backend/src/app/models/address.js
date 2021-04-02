@@ -20,31 +20,31 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       type: DataTypes.INTEGER,
     },
-    name: {
+    postal_code: {
+      type: DataTypes.STRING(15),
+      allowNull: false,
+    },
+    street: {
       type: DataTypes.STRING(80),
       allowNull: false,
     },
-    email: {
+    number: {
+      type: DataTypes.STRING(10),
+      allowNull: false,
+    },
+    complement: {
       type: DataTypes.STRING(80),
       allowNull: true,
     },
-    birthdate: {
-      type: DataTypes.DATE,
+    state: {
+      type: DataTypes.STRING(2),
       allowNull: false,
     },
-    cpf: {
-      type: DataTypes.STRING(25),
+    country: {
+      type: DataTypes.STRING(45),
       allowNull: false,
     },
-    gender: {
-      type: DataTypes.ENUM(['Female', 'Male', 'Other']),
-      allowNull: false,
-    },
-    phoneNumber: {
-      type: DataTypes.STRING(25),
-      allowNull: false,
-    },
-    motherName: {
+    neighborhood: {
       type: DataTypes.STRING(80),
       allowNull: false,
     },
@@ -55,26 +55,6 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: {
       allowNull: false,
       type: DataTypes.DATE
-    },
-    UserId: {
-      allowNull: true,
-      type: DataTypes.INTEGER,
-      references: {
-        model: 'Users',
-        key: 'id',
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL',
-    },
-    AddressId: {
-      allowNull: true,
-      type: DataTypes.INTEGER,
-      references: {
-        model: 'Addresses',
-        key: 'id',
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL',
     },
   }, {
     sequelize,
