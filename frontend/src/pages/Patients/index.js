@@ -7,6 +7,7 @@ import LoadingPage from '../../components/UI/LoadingPage';
 import TableInfo from '../../components/UI/Table/TableInfo';
 import { fetchPatients } from '../../services/requests/patients';
 import { INTERNAL_ERROR_MSG } from '../../utils/contants';
+import PatientsList from './PatientsList';
 
 const Patients = () => {
   const [patientModal, setPatientModal] = useState(null);
@@ -71,11 +72,11 @@ const Patients = () => {
               onClick: () => setPatientModal({ mode: 'include' }),
             }}
           />
-          {/* <InsurancesList
+          <PatientsList
             records={patientsList || []}
             setPatientsList={setPatientsList}
             setPatientModal={setPatientModal}
-          /> */}
+          />
         </Col>
       </Row>
     </Container>

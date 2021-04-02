@@ -11,6 +11,8 @@ import {
   Label,
   Row
 } from 'reactstrap';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import Swal from 'sweetalert2';
 import * as Yup from 'yup';
 
@@ -22,9 +24,11 @@ import Toast from '../../components/UI/Toast';
 import { INTERNAL_ERROR_MSG } from '../../utils/contants';
 import {
   createPatient,
-  // updatePatient,
+  updatePatient,
 } from '../../services/requests/patients';
 import Select from '../../components/UI/Select';
+
+dayjs.extend(utc);
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -46,6 +50,9 @@ const validationSchema = Yup.object().shape({
   state: Yup.string()
     .required('State is required!')
     .max(2, 'State must be 2 chars!'),
+  city: Yup.string()
+    .required('City is required!')
+    .max(50, 'City must be 50 chars!'),
   postal_code: Yup.string()
     .required('Postal code is required!')
     .max(15, 'This postal code is invalid!')
@@ -99,15 +106,24 @@ const PatientModal = ({
   const onSubmit = async (values) => {
     setSubmitting(true);
 
-    // const payload = { ...values };
-
     try {
-      console.log(data, values);
+      const birthdate = dayjs.utc(values.birthdate).format('YYYY-MM-DD');
 
-      const response = await createPatient({ ...values, UserId: user.userId });
-      // const response = mode === 'include'
-      //   ? await createPatient(payload)
-      //   : await updatePatient(data.id, payload);
+      const response = mode === 'include'
+        ? await createPatient({
+            ...values,
+            birthdate,
+            UserId: user.userId,
+          })
+        : await updatePatient(
+          data.id,
+          {
+            ...values,
+            birthdate,
+            UserId: user.userId,
+            AddressId: data?.Address?.id,
+          }
+        );
 
       if (response.success) {
         const updatedPatients = mode === 'include'
@@ -124,9 +140,8 @@ const PatientModal = ({
 
             return pat;
           });
-        
+
         setPatientsList(updatedPatients);
-        // dispatch(PatientsActions.setPatients(updatedPatients));
         onClose();
         Toast.fire({
           icon: 'success',
@@ -144,10 +159,32 @@ const PatientModal = ({
     }
   };
 
+  const getTitle = () => {
+    switch (mode) {
+      case 'edit':
+        return 'Edit Patient';
+      case 'include':
+        return 'Include Patient';
+      default:
+        return 'View Patient';
+    }
+  }
+
+  const getSubTitle = () => {
+    switch (mode) {
+      case 'edit':
+        return 'Fill in the fields bellow to edit this patient.';
+      case 'Include':
+        return 'To include a new patient please fill in all the fields bellow.'
+      default:
+        return 'You are in the view mode. In fields bellow you can find the patient data.';
+    }
+  }
+
   return (
     <ModalForm
-      title={mode === 'edit' ? 'Edit Patient' : 'Include Patient'}
-      subTitle="To include a new patient please fill in all the fields bellow."
+      title={getTitle()}
+      subTitle={getSubTitle()}
       onClose={onClose}
       size="lg"
       body={
@@ -170,6 +207,7 @@ const PatientModal = ({
                         name="name"
                         id="name"
                         placeholder="Patient Name"
+                        disabled={mode === 'view'}
                         className={errors.name ? 'is-invalid' : undefined}
                       />
                     )}
@@ -203,6 +241,7 @@ const PatientModal = ({
                         name="gender"
                         id="gender"
                         placeholder="Gender"
+                        disabled={mode === 'view'}
                         hasError={!!errors.gender}
                       />
                     )}
@@ -219,7 +258,10 @@ const PatientModal = ({
                   <Controller
                     name="birthdate"
                     control={control}
-                    defaultValue={data?.birthdate || ''}
+                    defaultValue={data?.birthdate
+                      ? dayjs(data.birthdate).format('YYYY-MM-DD')
+                      : ''
+                    }
                     render={({ onChange, onBlur, value }) => (
                       <Input
                         onChange={onChange}
@@ -228,6 +270,7 @@ const PatientModal = ({
                         type="date"
                         name="birthdate"
                         id="birthdate"
+                        disabled={mode === 'view'}
                         placeholder="Birthdate"
                         className={errors.birthdate ? 'is-invalid' : undefined}
                       />
@@ -252,11 +295,15 @@ const PatientModal = ({
                       <Input
                         onChange={onChange}
                         onBlur={onBlur}
-                        value={value}
+                        value={mode === 'view'
+                          ? data?.email || 'Not Provided'
+                          : value || ''
+                        }
                         type="text"
                         name="email"
                         id="email"
                         placeholder="Email"
+                        disabled={mode === 'view'}
                         className={errors.email ? 'is-invalid' : undefined}
                       />
                     )}
@@ -283,6 +330,7 @@ const PatientModal = ({
                         name="cpf"
                         id="cpf"
                         placeholder="CPF"
+                        disabled={mode === 'view'}
                         className={errors.cpf ? 'is-invalid' : undefined}
                       />
                     )}
@@ -311,6 +359,7 @@ const PatientModal = ({
                         name="motherName"
                         id="motherName"
                         placeholder="Mother's Name"
+                        disabled={mode === 'view'}
                         className={errors.motherName ? 'is-invalid' : undefined}
                       />
                     )}
@@ -337,6 +386,7 @@ const PatientModal = ({
                         name="phoneNumber"
                         id="phoneNumber"
                         placeholder="Phone Number"
+                        disabled={mode === 'view'}
                         className={errors.phoneNumber ? 'is-invalid' : undefined}
                       />
                     )}
@@ -386,7 +436,7 @@ const PatientModal = ({
                   <Controller
                     name="postal_code"
                     control={control}
-                    defaultValue={data?.postal_code || ''}
+                    defaultValue={data?.Address?.postal_code || ''}
                     render={({ onBlur, onChange, value }) => (
                       <Input
                         onChange={onChange}
@@ -396,8 +446,9 @@ const PatientModal = ({
                         name="postal_code"
                         id="postal_code"
                         placeholder="e.g. 35970000"
+                        disabled={mode === 'view'}
                         onBlur={async (e) => {
-                          if (!e.target.value) return null;
+                          if (!e.target.value) return onBlur(e);
 
                           const pattern = /^\d\d\d\d\d[-]?\d\d\d$/gm;
 
@@ -413,8 +464,14 @@ const PatientModal = ({
 
                               setValue('state', response?.uf || '');
                               setValue('city', response?.localidade || '');
-                              setValue('neighborhood', response?.bairro || '');
-                              setValue('street', response?.logradouro || '');
+
+                              if (response.bairro) {
+                                setValue('neighborhood', response.bairro);
+                              }
+
+                              if (response.logradouro) {
+                                setValue('street', response?.logradouro || value);
+                              }
                             } catch (error) {
                               setValue('state', '');
                               setValue('city', '');
@@ -448,7 +505,7 @@ const PatientModal = ({
                   <Controller
                     name="state"
                     control={control}
-                    defaultValue={data?.state || ''}
+                    defaultValue={data?.Address?.state || ''}
                     render={({ value }) => (
                       <Input
                         readOnly
@@ -461,9 +518,6 @@ const PatientModal = ({
                       />
                     )}
                   />
-                  {errors.state &&
-                    <InvalidInputMessage message={errors.state?.message} />
-                  }
                 </FormGroup>
               </Col>
 
@@ -473,7 +527,7 @@ const PatientModal = ({
                   <Controller
                     name="city"
                     control={control}
-                    defaultValue={data?.city || ''}
+                    defaultValue={data?.Address?.city || ''}
                     render={({ value }) => (
                       <Input
                         readOnly
@@ -486,9 +540,6 @@ const PatientModal = ({
                       />
                     )}
                   />
-                  {errors.city &&
-                    <InvalidInputMessage message={errors.city?.message} />
-                  }
                 </FormGroup>
               </Col>
             </Row>
@@ -500,7 +551,7 @@ const PatientModal = ({
                   <Controller
                     name="street"
                     control={control}
-                    defaultValue={data?.street || ''}
+                    defaultValue={data?.Address?.street || ''}
                     render={({ onBlur, onChange, value }) => (
                       <Input
                         onBlur={onBlur}
@@ -509,7 +560,9 @@ const PatientModal = ({
                         type="text"
                         name="street"
                         id="street"
+                        disabled={mode === 'view'}
                         placeholder="Street"
+                        className={errors.street ? 'is-invalid' : undefined}
                       />
                     )}
                   />
@@ -525,7 +578,7 @@ const PatientModal = ({
                   <Controller
                     name="number"
                     control={control}
-                    defaultValue={data?.number || ''}
+                    defaultValue={data?.Address?.number || ''}
                     render={({ onBlur, onChange, value }) => (
                       <Input
                         onBlur={onBlur}
@@ -534,7 +587,9 @@ const PatientModal = ({
                         type="text"
                         name="number"
                         id="number"
+                        disabled={mode === 'view'}
                         placeholder="Number"
+                        className={errors.number ? 'is-invalid' : undefined}
                       />
                     )}
                   />
@@ -557,10 +612,14 @@ const PatientModal = ({
                       <Input
                         onBlur={onBlur}
                         onChange={onChange}
-                        value={value}
+                        value={mode === 'view'
+                          ? data?.Address?.complement || 'Not provided'
+                          : value
+                        }
                         type="text"
                         name="complement"
                         id="complement"
+                        disabled={mode === 'view'}
                         placeholder="Complement"
                       />
                     )}
@@ -577,7 +636,7 @@ const PatientModal = ({
                   <Controller
                     name="neighborhood"
                     control={control}
-                    defaultValue={data?.neighborhood || ''}
+                    defaultValue={data?.Address?.neighborhood || ''}
                     render={({ onBlur, onChange, value }) => (
                       <Input
                         onBlur={onBlur}
@@ -586,7 +645,9 @@ const PatientModal = ({
                         type="text"
                         name="neighborhood"
                         id="neighborhood"
+                        disabled={mode === 'view'}
                         placeholder="Neighborhood"
+                        className={errors.neighborhood ? 'is-invalid' : undefined}
                       />
                     )}
                   />
@@ -597,32 +658,34 @@ const PatientModal = ({
               </Col>
             </Row>
 
-            <Container className="mt-4 mb-3 d-flex justify-content-center flex-wrap">
-              <Button
-                color="primary"
-                type="button"
-                className="width-lg pl-4 pr-4"
-                title="Click to cancel and discard all changes"
-                onClick={() => onClose()}
-                disabled={isSubmitting}
-                outline
-              >
-                Cancel
-              </Button>
+            {mode !== 'view' && (
+              <Container className="mt-4 mb-3 d-flex justify-content-center flex-wrap">
+                <Button
+                  color="primary"
+                  type="button"
+                  className="width-lg pl-4 pr-4"
+                  title="Click to cancel and discard all changes"
+                  onClick={() => onClose()}
+                  disabled={isSubmitting}
+                  outline
+                >
+                  Cancel
+                </Button>
 
-              <Button
-                color="success"
-                type="submit"
-                size="md"
-                className="width-lg ml-2 pl-4 pr-4"
-                title={
-                  `Click to ${mode === 'edit' ? 'edit' : 'include'} this patient`
-                }
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Saving...' : 'Save'}
-              </Button>
-            </Container>
+                <Button
+                  color="success"
+                  type="submit"
+                  size="md"
+                  className="width-lg ml-2 pl-4 pr-4"
+                  title={
+                    `Click to ${mode === 'edit' ? 'edit' : 'include'} this patient`
+                  }
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save'}
+                </Button>
+              </Container>
+            )}
           </Form>          
         </>
       }
