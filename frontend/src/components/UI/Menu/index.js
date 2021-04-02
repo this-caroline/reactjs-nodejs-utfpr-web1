@@ -3,12 +3,12 @@ import React, {
   useEffect,
   useState
 } from 'react';
+import { withRouter } from 'react-router';
 import { useDispatch } from 'react-redux';
 
 import styles from './Menu.module.css';
 import MobileMenu from './MobileMenu';
 import { Creators as AuthActions } from '../../../store/ducks/auth/reducer';
-import { withRouter } from 'react-router';
 
 const maxW = 755;
 const menuItems = [
