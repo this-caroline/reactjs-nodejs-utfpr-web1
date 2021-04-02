@@ -53,6 +53,7 @@ const Nav = ({ history }) => {
         {menuItems.map((item) => (
           <li
             key={item.id}
+            id={`main-menu-list-item-${item.path || item.id}`}
             onClick={() => {
               if (item.path === '/logout') {
                 localStorage.clear();
@@ -91,8 +92,22 @@ const Menu = ({ history }) => {
   useEffect(() => {
     window.addEventListener('resize', handleChangeWidth);
 
+    menuItems.forEach((item) => {
+      const menuItem = document.getElementById(
+        `main-menu-list-item-${item.path || item.id}`
+      );
+
+      if (menuItem) {
+        if (!mobileMenu && item.path === history.location.pathname) {
+          menuItem.classList.add(styles.Active);
+        } else {
+          menuItem.classList.remove(styles.Active);
+        }
+      }
+    });
+
     return () => window.removeEventListener('resize', handleChangeWidth);
-  }, [handleChangeWidth]);
+  }, [handleChangeWidth, mobileMenu, history.location.pathname]);
 
   return (
     <>
