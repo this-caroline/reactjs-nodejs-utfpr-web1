@@ -32,11 +32,10 @@ const Login = ({ history }) => {
       .required('Password is required!')
       .max(45, 'Password is invalid!')
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setSubmitting] = useState(false);
   const dispatch = useDispatch();
   const resolver = useYupValidationResolver(validationSchema);
   const {
-    // register,
     control,
     handleSubmit,
     errors,
@@ -44,9 +43,7 @@ const Login = ({ history }) => {
   const [alert, setAlert] = useState(null);
 
   const onSubmit = async (data) => {
-    setIsSubmitting(true);
-
-    console.log(data);
+    setSubmitting(true);
 
     try {
       const response = await api.post('/session', data);
@@ -75,7 +72,7 @@ const Login = ({ history }) => {
         }
       }
 
-      setIsSubmitting(false);
+      setSubmitting(false);
       setAlert(message);
     }
   };

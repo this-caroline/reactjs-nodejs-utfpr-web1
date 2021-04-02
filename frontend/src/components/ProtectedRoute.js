@@ -45,10 +45,10 @@ const ProtectedRoute = (props) => {
     if (isPrivate) {
       if (isAuthenticated) {
         return (
-          <div>
+          <>
             <Menu />
             <Component {...routeProps} />
-          </div>
+          </>
         );
       }
 

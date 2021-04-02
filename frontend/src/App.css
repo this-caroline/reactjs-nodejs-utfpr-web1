@@ -10,3 +10,7 @@ body {
 ul li {
   list-style: none;
 }
+
+.App {
+  min-height: calc(100vh - 80px);
+}

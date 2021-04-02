@@ -18,23 +18,21 @@ const TableActions = ({
   return (
     <div className="d-flex justify-content-evenly align-items-center">
       {(view?.visible) && (
-        <span onClick={view.onClick} title={view.title || 'View'}>
+        <span onClick={view.onClick} title={view.title || 'View'} className="mr-3">
           <Search
             cursor="pointer"
             size="16"
             color={view.color || '#669de6'}
-            className="mr-3"
           />
         </span>
       )}
 
       {edit?.visible && (
-        <span onClick={edit.onClick} title={edit.title || 'Edit'}>
+        <span onClick={edit.onClick} title={edit.title || 'Edit'} className="mr-3">
           <Edit
             cursor="pointer"
             size="16"
             color={edit.color || '#ffc700'}
-            className="mr-3"
           />
         </span>
       )}

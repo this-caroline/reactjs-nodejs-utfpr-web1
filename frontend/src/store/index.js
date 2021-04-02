@@ -2,9 +2,12 @@ import { applyMiddleware, combineReducers, createStore, compose } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 
 import auth, { Types as AuthTypes } from './ducks/auth/reducer';
+import insurances from './ducks/insurances/reducer';
+import { watchInsurances } from './rootSagas';
 
 const appReducer = combineReducers({
   auth,
+  insurances,
 });
 
 const rootReducer = (state, action) => {
@@ -21,5 +24,7 @@ const store = createStore(
   rootReducer,
   composeEnhancers(applyMiddleware(sagaMiddleware))
 );
+
+sagaMiddleware.run(watchInsurances);
 
 export default store;

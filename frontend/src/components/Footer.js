@@ -1,17 +1,16 @@
 import React from 'react';
-import { Navbar, Container } from 'reactstrap';
 
 const Footer = () => {
-  return(
-    <div className="fixed-bottom">  
-      <Navbar color="dark" dark>
-        <Container className="d-flex align-items-center justify-content-center">
-          <h3 className="color-light h6 pt-2 text-white">
-            Medical App 2021 &copy; All Rights Reserved
-          </h3>
-        </Container>
-      </Navbar>
-    </div>
+  return (
+    <footer
+      id="sticky-footer"
+      className="py-3 bg-dark text-white-50 mt-4"
+      style={{ minHeight: 50 }}
+    >
+      <div className="container text-center">
+        <small>Medical App 2021 &copy; All Rights Reserved</small>
+      </div>
+    </footer>
   );
 };
 
