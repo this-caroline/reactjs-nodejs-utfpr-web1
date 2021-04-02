@@ -2,15 +2,10 @@ import React from 'react';
 import { Plus } from 'react-feather';
 import { Button, Col, Row } from 'reactstrap';
 
-const TableInfo = ({ title, message, addButton, size = 0 }) => {
-  let className = 'd-flex flex-wrap align-items-end justify-content-between';
-
-  if (size === 0) {
-    className = 'd-flex flex-wrap flex-column align-items-start justify-content-between';
-  }
+const TableInfo = ({ title, message, addButton }) => {
 
   return (
-    <div className={className}>
+    <>
       <Row className="mr-2">
         <Col>
           <h3 style={{ color: '#515151' }} className="font-weight-bold h5 mb-1">
@@ -30,7 +25,7 @@ const TableInfo = ({ title, message, addButton, size = 0 }) => {
           {addButton.value} <Plus size="16" />
         </Button>
       )}
-    </div>
+    </>
   );
 };
 
