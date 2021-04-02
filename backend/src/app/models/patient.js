@@ -68,16 +68,6 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: 'CASCADE',
       onDelete: 'SET NULL',
     },
-    AddressId: {
-      allowNull: true,
-      type: DataTypes.INTEGER,
-      references: {
-        model: 'Addresses',
-        key: 'id',
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL',
-    },
   }, {
     sequelize,
     modelName: 'Patient',

@@ -54,16 +54,6 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
-      AddressId: {
-        allowNull: true,
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Addresses',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
-      },
     });
   },
   down: async (queryInterface, Sequelize) => {

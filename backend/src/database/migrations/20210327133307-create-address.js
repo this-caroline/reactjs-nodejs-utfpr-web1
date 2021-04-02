@@ -28,6 +28,10 @@ module.exports = {
         type: Sequelize.STRING(2),
         allowNull: false,
       },
+      city: {
+        type: Sequelize.STRING(45),
+        allowNull: false,
+      },
       country: {
         type: Sequelize.STRING(45),
         allowNull: false,
@@ -43,6 +47,16 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
+      },
+      PatientId: {
+        allowNull: true,
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Patients',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
     });
   },

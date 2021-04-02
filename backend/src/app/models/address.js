@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Address.hasOne(models.Patient);
+      Address.belongsTo(models.Patient);
     }
   };
   Address.init({
@@ -40,6 +40,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(2),
       allowNull: false,
     },
+    city: {
+      type: DataTypes.STRING(45),
+      allowNull: false,
+    },
     country: {
       type: DataTypes.STRING(45),
       allowNull: false,
@@ -47,6 +51,16 @@ module.exports = (sequelize, DataTypes) => {
     neighborhood: {
       type: DataTypes.STRING(80),
       allowNull: false,
+    },
+    PatientId: {
+      allowNull: true,
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Patient',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL',
     },
     createdAt: {
       allowNull: false,
