@@ -2,6 +2,7 @@ const express = require('express');
 const Router = express.Router();
 
 const AuthController = require('./app/controllers/AuthController');
+const AppointmentController = require('./app/controllers/AppointmentController');
 const SessionController = require('./app/controllers/SessionController');
 const InsuranceController = require('./app/controllers/InsuranceController');
 const PatientController = require('./app/controllers//PatientController');
@@ -11,6 +12,12 @@ Router.post('/auth/validate', AuthController.store);
 
 // SESSION
 Router.post('/session', SessionController.store);
+
+// APPOINTMENTS
+Router.post('/appointment', AppointmentController.store);
+Router.put('/appointment/:id', AppointmentController.update);
+Router.get('/appointment', AppointmentController.index);
+Router.delete('/appointment/:id', AppointmentController.destroy);
 
 // INSURANCES
 Router.post('/insurance', InsuranceController.store);

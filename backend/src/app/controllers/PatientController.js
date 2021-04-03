@@ -3,6 +3,8 @@ const utc = require('dayjs/plugin/utc');
 
 const sequelize = require('../models').sequelize;
 const Address = require('../models').Address;
+const Appointment = require('../models').Appointment;
+const Insurance = require('../models').Insurance;
 const Patient = require('../models').Patient;
 const User = require('../models').User;
 
@@ -148,6 +150,12 @@ module.exports = {
       const patients = await Patient.findAll({
         include: [
           { model: Address },
+          {
+            model: Appointment,
+            include: [{
+              model: Insurance, required: false, attributes: ['name', 'id'],
+            }]
+          },
           { model: User, required: true, attributes: ['username'] },
         ],
       });
