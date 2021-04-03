@@ -1,52 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { Col, Container, Row } from 'reactstrap';
-import Swal from 'sweetalert2';
+import { useDispatch, useSelector } from 'react-redux';
 
+import PatientsList from './PatientsList';
 import PatientModal from './PatientModal';
 import LoadingPage from '../../components/UI/LoadingPage';
-import TableInfo from '../../components/UI/Table/TableInfo';
-import { fetchPatients } from '../../services/requests/patients';
-import { INTERNAL_ERROR_MSG } from '../../utils/contants';
-import PatientsList from './PatientsList';
+import { Creators as InsurancesActions } from '../../store/ducks/insurances/reducer';
+import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 
 const Patients = () => {
+  const insurances = useSelector((state) => state.insurances);
+  const patients = useSelector((state) => state.patients);
+  const dispatch = useDispatch();
   const [patientModal, setPatientModal] = useState(null);
-  const [patientsList, setPatientsList] = useState(null);
-  const [isLoading, setLoading] = useState(true);
+  // const [patientsList, setPatientsList] = useState(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const response = await fetchPatients();
+    // (async () => {
+    //   try {
+    //     dispatch(InsurancesActions.fetchInsurances());
+    //     const response = await fetchPatients();
 
-        if (response.success) {
-          setPatientsList(response.data?.patients || []);
-        } else throw new Error();
-      } catch (error) {
-        Swal.fire('Something went wrong!', INTERNAL_ERROR_MSG, 'error');
-      }
+    //     if (response.success) {
+    //       setPatientsList(response.data?.patients || []);
+    //     } else throw new Error();
+    //   } catch (error) {
+    //     Swal.fire('Something went wrong!', INTERNAL_ERROR_MSG, 'error');
+    //   }
 
-      setLoading(false);
-    })();
-  }, []);
+    //   setLoading(false);
+    // })();
+    dispatch(InsurancesActions.fetchInsurances());
+    dispatch(PatientsActions.fetchPatients());
+  }, [dispatch]);
 
-  if (isLoading) return <LoadingPage />;
-  if (!isLoading && !patientsList) {
-    /** TO DO: Improve error messages/components... */
-    return <h2>{INTERNAL_ERROR_MSG}</h2>;
-  }
-
-  const getMessage = () => {
-    if (patientsList?.length === 1) {
-      return 'Currently you have one patient registered.';
-    }
-
-    if (patientsList?.length > 1) {
-      return `Currently you have ${patientsList?.length} patients registered.`;
-    }
-
-    return 'You have not patients registered yet.';
-  };
+  if (!patients || !insurances) return <LoadingPage />;
+  // if (patients.loading || insurances.loading) return <LoadingPage />;
+  // if (
+  //   (!patients.loading && !patients.patients) ||
+  //   (!insurances.loading && !insurances.insurances)
+  // ) {
+  //   /** TO DO: Implement appropriate component to handle error messages... */
+  //   return <h2>{INTERNAL_ERROR_MSG}</h2>;
+  // }
 
   return (
     <Container fluid className="mt-4 w-100">
@@ -54,27 +50,14 @@ const Patients = () => {
         <PatientModal
           data={patientModal.patient}
           mode={patientModal.mode}
-          patientsList={patientsList}
-          setPatientsList={setPatientsList}
+          patientsList={patients?.patients}
           onClose={() => setPatientModal(null)}
         />
       )}
       <Row className="m-auto w-100">
         <Col className="table-responsive">
-          <TableInfo
-            title="Patients"
-            size={patientsList.length}
-            message={getMessage()}
-            addButton={{
-              visible: true,
-              value: 'Add Patient',
-              title: 'Click to add a new patient',
-              onClick: () => setPatientModal({ mode: 'include' }),
-            }}
-          />
           <PatientsList
-            records={patientsList || []}
-            setPatientsList={setPatientsList}
+            records={patients?.patients || []}
             setPatientModal={setPatientModal}
           />
         </Col>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Edit, Trash, X } from 'react-feather';
+import { Search, Edit, Trash, X, Calendar } from 'react-feather';
 
 /**
  * @param {Object} edit - Object with edit properties.
@@ -11,6 +11,7 @@ import { Search, Edit, Trash, X } from 'react-feather';
  */
 const TableActions = ({
   view,
+  calendar,
   edit,
   del,
   remove
@@ -23,6 +24,16 @@ const TableActions = ({
             cursor="pointer"
             size="16"
             color={view.color || '#669de6'}
+          />
+        </span>
+      )}
+
+      {calendar?.visible && (
+        <span onClick={calendar.onClick} title={calendar.title} className="mr-3">
+          <Calendar
+            cursor="pointer"
+            size="16"
+            color={calendar.color || '#03c474'}
           />
         </span>
       )}

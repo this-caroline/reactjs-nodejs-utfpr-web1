@@ -226,7 +226,7 @@ const PatientModal = ({
                   <Controller
                     name="gender"
                     control={control}
-                    defaultValue={data?.gender || ''}
+                    defaultValue={data?.gender || 'Female'}
                     render={({ onChange, onBlur, value }) => (
                       <Select
                         options={[

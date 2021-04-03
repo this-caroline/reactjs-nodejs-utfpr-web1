@@ -3,11 +3,13 @@ import createSagaMiddleware from 'redux-saga';
 
 import auth, { Types as AuthTypes } from './ducks/auth/reducer';
 import insurances from './ducks/insurances/reducer';
-import { watchInsurances } from './rootSagas';
+import patients from './ducks/patients/reducer';
+import { watchInsurances, watchPatients } from './rootSagas';
 
 const appReducer = combineReducers({
   auth,
   insurances,
+  patients,
 });
 
 const rootReducer = (state, action) => {
@@ -26,5 +28,6 @@ const store = createStore(
 );
 
 sagaMiddleware.run(watchInsurances);
+sagaMiddleware.run(watchPatients);
 
 export default store;
