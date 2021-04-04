@@ -93,7 +93,6 @@ const InsurancesList = ({ records, setInsuranceModal }) => {
       <Table
         columns={columns}
         tableData={tableData}
-        columnsNames={['name', 'createdAt', 'username']}
         tableInfo={{
           visible: true,
           hasSearch: true,

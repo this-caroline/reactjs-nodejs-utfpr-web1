@@ -4,6 +4,7 @@ import { Plus } from 'react-feather';
 
 import styles from './Table.module.css';
 import Pagination from '../Pagination';
+import { getUniqueObject } from '../../../utils/unique';
 
 const flattenObject = function(ob) {
   var toReturn = {};
@@ -31,7 +32,7 @@ const flattenObject = function(ob) {
 
 const Table = (props) => {
   let timer = null;
-  const tableRef = createRef();
+  const recordsRef = createRef();
   const {
     children,
     className,
@@ -77,31 +78,47 @@ const Table = (props) => {
                 const value = e.target.value;
 
                 // if (value === '') return setTableList(records);
+                // if (value === '') return;
 
                 timer = setTimeout(() => {
                   const flatted = tableData?.map((record) => flattenObject(record));
                   const columnsNames = columns.map((col) => col.value);
                   const filtered = [];
 
-                  // console.log(flatted);
                   columnsNames.forEach((cn) => {
                     flatted?.forEach((record) => {
-                      if (record[cn]?.toLowerCase()?.includes(value?.toLowerCase())) {
+                      if (
+                        record[cn]?.toString()
+                          .toLowerCase()
+                          ?.includes(value?.toLowerCase())
+                      ) {
                         filtered.push(record);
                       }
                     });
                   });
 
-                  console.log(filtered);
-                }, 700);
+                  const found = getUniqueObject(filtered, 'keyRecord');
+
+                  flatted.forEach((record) => {
+                    const row = document.getElementById(record.keyRecord);
+                    const foundItemsKeys = found.map(
+                      (item) => item.keyRecord.toString()
+                    );
+
+                    if (row && foundItemsKeys.includes(record.keyRecord.toString())) {
+                      row.style.display = '';
+                    } else {
+                      row.style.display = 'none';
+                    }
+                  })
+                }, 500);
               }}
             />
           )}
         </>
       )}
       <table
-        className={`${styles.Table} ${className} table table-hover`}
-        ref={tableRef}
+        className={`${styles.Table} ${className || ''} table table-hover`}
         {...rest}
       >
          <thead>
@@ -111,10 +128,10 @@ const Table = (props) => {
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody ref={recordsRef}>
           {tableData.map((record) => (
-            <tr key={record.keyRecord || record?.id}>
-              {columns.map((col, i) => (
+            <tr key={record.keyRecord} id={record.keyRecord}>
+              {columns.map((col) => (
                 <td key={col.id}>{record[col?.value]}</td>
               ))}
             </tr>
