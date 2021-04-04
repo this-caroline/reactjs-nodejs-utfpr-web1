@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import React, { createRef, useEffect, useState } from 'react';
 import { Button, Col, Input, Row } from 'reactstrap';
 import { Plus } from 'react-feather';
 import dayjs from 'dayjs';
@@ -36,6 +36,7 @@ const flattenObject = function(ob) {
 
 const Table = (props) => {
   let timer = null;
+  const today = dayjs(new Date()).format('YYYY-MM-DD');
   const tableBodyRef = createRef();
   const {
     // tableId = '', // to handle correct table...
@@ -47,6 +48,7 @@ const Table = (props) => {
     hasPagination = false,
     ...rest
   } = props;
+  const [isReady, setReady] = useState(tableInfo?.hasSearch?.type !== 'date');
 
   const setDataIndication = (length) => {
     const noDataEl = document.getElementById('no-data-indication-paragraph');
@@ -55,16 +57,16 @@ const Table = (props) => {
 
     const containerEl = document.getElementById('custom-table-container');
 
-    if (noDataEl && containerEl) {
+    if (containerEl) {
       if (!length) {
         const noDataEl = document.createElement('p');
   
         noDataEl.id = 'no-data-indication-paragraph';
         noDataEl.textContent = 'Sorry. No records were found.';
         noDataEl.classList.add(styles.NoDataIndication);
-        containerEl.appendChild(noDataEl);
+        containerEl?.appendChild(noDataEl);
       } else {
-        containerEl.removeChild(noDataEl);
+        if (noDataEl) containerEl?.removeChild(noDataEl);
       }
     }
   };
@@ -81,7 +83,7 @@ const Table = (props) => {
     return setDataIndication(true);
   };
 
-  const filterSearch = (value) => {
+  const filterSearch = React.useCallback((value) => {
     const flatted = tableData?.map((record) => flattenObject(record));
     const columnsNames = columns.map((col) => col.value);
     const filtered = [];
@@ -100,6 +102,7 @@ const Table = (props) => {
 
     const found = getUniqueObject(filtered, 'keyRecord');
 
+    console.log(flatted, found);
     flatted.forEach((record) => {
       const row = document.getElementById(record.keyRecord);
       const foundItemsKeys = found.map(
@@ -116,91 +119,128 @@ const Table = (props) => {
     });
 
     setDataIndication(found.length);
-  };
+  }, [columns, tableData]);
 
+  useEffect(() => {
+    if (tableInfo?.hasSearch?.type === 'date') {
+      setTimeout(() => {
+        filterSearch(today);
+        setReady(true);
+      }, 1000);
+    }
+  }, [filterSearch, tableInfo?.hasSearch?.type, today]);
 
   return (
-    <div id="custom-table-container" className="table-responsive w-100">
-      {tableInfo?.visible && (
-        <>
-          <Row className="mr-2">
-            <Col>
-              <h3 style={{ color: '#515151' }} className="font-weight-bold h5 mb-1">
-                {tableInfo?.title}
-              </h3>
-              <p className="text-muted">{tableInfo?.message}</p>
-            </Col>
-          </Row>
-          {tableInfo?.addButton?.visible && (
-            <Button
-              className="mb-3 width-lg pl-3 pr-3"
-              type="button"
-              color={tableInfo?.addButton?.color || 'primary'}
-              title={tableInfo?.addButton?.title}
-              onClick={tableInfo?.addButton?.onClick}
-            >
-              {tableInfo?.addButton.value} <Plus size="16" />
-            </Button>
-          )}
-          {tableInfo?.hasSearch && (
-            <Input
-              className="form-control mb-3"
-              defaultValue={tableInfo?.hasSearch?.type === 'date'
-                ? dayjs(new Date()).format('YYYY-MM-DD')
-                : ''
-              }
-              style={{ width: tableInfo?.hasSearch?.width || '280px' }}
-              type={tableInfo?.hasSearch?.type || 'text'}
-              placeholder={tableInfo?.hasSearch?.placeholder || 'Search...'}
-              onChange={(e) => {
-                if (!e.target.value) return restoreRecords();
-                return null;
-              }}
-              onBlur={(e) => {
-                if (!e.target.value) return restoreRecords();
-                if (tableInfo?.hasSearch?.type === 'date') {
-                  return filterSearch(dayjs.utc(e.target.value)
-                    .format('DD/MM/YYYY'));
-                }
-              }}
-              onKeyUp={(e) => {
-                if (tableInfo?.hasSearch?.type === 'date') return null;
-
-                clearTimeout(timer);
-
-                const value = e.target.value;
-
-                timer = setTimeout(() => {
-                  filterSearch(value);
-                }, 500);
-              }}
-            />
-          )}
-        </>
-      )}
-      <table
-        className={`${styles.Table} ${className || ''} table table-hover`}
-        {...rest}
+    <>
+      <div
+        id="custom-table-container"
+        className={isReady ? 'table-responsive w-100' : ''}
       >
-         <thead>
-          <tr>
-            {columns.map((column) => (
-              <th key={column.value} scope="col">{column.name}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody ref={tableBodyRef}>
-          {tableData.map((record) => (
-            <tr key={record.keyRecord} id={record.keyRecord}>
-              {columns.map((col) => (
-                <td key={col.id}>{record[col?.value]}</td>
+        {tableInfo?.visible && (
+          <>
+            <Row className="mr-2">
+              <Col>
+                <h3 style={{ color: '#515151' }} className="font-weight-bold h5 mb-1">
+                  {tableInfo?.title}
+                </h3>
+                <p className="text-muted">
+                  {isReady
+                    ? tableInfo?.message
+                    : 'You data will appear soon in a table bellow.'
+                  }
+                </p>
+              </Col>
+            </Row>
+            {tableInfo?.addButton?.visible && (
+              <Button
+                className="mb-3 width-lg pl-3 pr-3"
+                type="button"
+                color={tableInfo?.addButton?.color || 'primary'}
+                title={tableInfo?.addButton?.title}
+                onClick={tableInfo?.addButton?.onClick}
+              >
+                {tableInfo?.addButton.value} <Plus size="16" />
+              </Button>
+            )}
+            {tableInfo?.hasSearch && (
+              <Input
+                className="form-control mb-3"
+                defaultValue={tableInfo?.hasSearch?.type === 'date' ? today : ''
+                }
+                style={{ width: tableInfo?.hasSearch?.width || '280px' }}
+                type={tableInfo?.hasSearch?.type || 'text'}
+                placeholder={tableInfo?.hasSearch?.placeholder || 'Search...'}
+                disabled={!isReady}
+                onChange={(e) => {
+                  if (!e.target.value) return restoreRecords();
+                  return null;
+                }}
+                onBlur={(e) => {
+                  if (!e.target.value) return restoreRecords();
+                  if (tableInfo?.hasSearch?.type === 'date') {
+                    return filterSearch(dayjs.utc(e.target.value)
+                      .format('DD/MM/YYYY'));
+                  }
+                }}
+                onKeyUp={(e) => {
+                  if (tableInfo?.hasSearch?.type === 'date') return null;
+
+                  clearTimeout(timer);
+
+                  const value = e.target.value;
+
+                  timer = setTimeout(() => {
+                    filterSearch(value);
+                  }, 500);
+                }}
+              />
+            )}
+            {!isReady && (
+              <Row className="d-flex justify-content-start text-align-left">
+                <Col>
+                <div className="d-flex align-items-start">
+                  <span className="mr-3">Please wait. Loading data...</span>
+                  <div
+                    className="spinner-border text-primary spinner-border-sm"
+                    role="status"
+                  />
+                </div>
+                </Col>
+              </Row>
+            )}
+          </>
+        )}
+        <table
+          className={!isReady
+            ? 'd-none'
+            : `${styles.Table} ${className || ''} table table-hover`
+          }
+          {...rest}
+        >
+          <>
+            <thead>
+              <tr>
+                {columns.map((column) => (
+                  <th key={column.value} scope="col">{column.name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody ref={tableBodyRef}>
+              {tableData.map((record) => (
+                <tr key={record.keyRecord} id={record.keyRecord}>
+                  {columns.map((col) => (
+                    <td key={col.id}>{record[col?.value]}</td>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {hasPagination && (<Pagination pagination={{ page: 1, lastPage: 20 }} />)}
-    </div>
+            </tbody>
+          </>
+        </table>
+      </div>
+      {(isReady && hasPagination) && (
+        <Pagination pagination={{ page: 1, lastPage: 20 }} />
+      )}
+    </>
   );
 };
 
