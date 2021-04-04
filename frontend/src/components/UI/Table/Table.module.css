@@ -4,6 +4,7 @@
 
 .Table {
   border: 1px solid rgb(221, 221, 221);
+  margin-bottom: 0;
 }
 
 .Table:hover {
@@ -16,6 +17,16 @@
 
 .Table tbody tr {
   background-color: rgb(245, 245, 245);
+}
+
+.NoDataIndication {
+  color: rgb(124, 124, 124);
+  border: 1px solid rgb(231, 231, 231);
+  font-size: 17px;
+  text-align: center;
+  margin: 0;
+  padding: 8px;
+  width: 100%;
 }
 
 @media (max-width: 500px) {

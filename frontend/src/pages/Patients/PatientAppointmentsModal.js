@@ -22,7 +22,7 @@ import {
 import { INTERNAL_ERROR_MSG } from '../../utils/contants';
 import Toast from '../../components/UI/Toast';
 
-dayjs.extend(utc)
+dayjs.extend(utc);
 
 const validationSchema = Yup.object().shape({
   date: Yup.string().required('Appointment date is required!'),

@@ -1,10 +1,14 @@
 import React, { createRef } from 'react';
 import { Button, Col, Input, Row } from 'reactstrap';
 import { Plus } from 'react-feather';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
 import styles from './Table.module.css';
 import Pagination from '../Pagination';
 import { getUniqueObject } from '../../../utils/unique';
+
+dayjs.extend(utc);
 
 const flattenObject = function(ob) {
   var toReturn = {};
@@ -32,8 +36,9 @@ const flattenObject = function(ob) {
 
 const Table = (props) => {
   let timer = null;
-  const recordsRef = createRef();
+  const tableBodyRef = createRef();
   const {
+    // tableId = '', // to handle correct table...
     children,
     className,
     tableInfo,
@@ -43,8 +48,79 @@ const Table = (props) => {
     ...rest
   } = props;
 
+  const setDataIndication = (length) => {
+    const noDataEl = document.getElementById('no-data-indication-paragraph');
+
+    if (!length && noDataEl) return true;
+
+    const containerEl = document.getElementById('custom-table-container');
+
+    if (noDataEl && containerEl) {
+      if (!length) {
+        const noDataEl = document.createElement('p');
+  
+        noDataEl.id = 'no-data-indication-paragraph';
+        noDataEl.textContent = 'Sorry. No records were found.';
+        noDataEl.classList.add(styles.NoDataIndication);
+        containerEl.appendChild(noDataEl);
+      } else {
+        containerEl.removeChild(noDataEl);
+      }
+    }
+  };
+
+  const restoreRecords = () => {
+    const flatted = tableData?.map((record) => flattenObject(record));
+
+    flatted.forEach((record) => {
+      const row = document.getElementById(record.keyRecord);
+
+      if (row) row.style.display = '';
+    });
+
+    return setDataIndication(true);
+  };
+
+  const filterSearch = (value) => {
+    const flatted = tableData?.map((record) => flattenObject(record));
+    const columnsNames = columns.map((col) => col.value);
+    const filtered = [];
+
+    columnsNames.forEach((cn) => {
+      flatted?.forEach((record) => {
+        if (
+          record[cn]?.toString()
+            .toLowerCase()
+            ?.includes(value?.toLowerCase())
+        ) {
+          filtered.push(record);
+        }
+      });
+    });
+
+    const found = getUniqueObject(filtered, 'keyRecord');
+
+    flatted.forEach((record) => {
+      const row = document.getElementById(record.keyRecord);
+      const foundItemsKeys = found.map(
+        (item) => item.keyRecord.toString()
+      );
+
+      if (row) {
+        if (foundItemsKeys.includes(record.keyRecord.toString())) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      }
+    });
+
+    setDataIndication(found.length);
+  };
+
+
   return (
-    <>
+    <div id="custom-table-container" className="table-responsive w-100">
       {tableInfo?.visible && (
         <>
           <Row className="mr-2">
@@ -69,48 +145,33 @@ const Table = (props) => {
           {tableInfo?.hasSearch && (
             <Input
               className="form-control mb-3"
-              style={{ width: '280px' }}
+              defaultValue={tableInfo?.hasSearch?.type === 'date'
+                ? dayjs(new Date()).format('YYYY-MM-DD')
+                : ''
+              }
+              style={{ width: tableInfo?.hasSearch?.width || '280px' }}
               type={tableInfo?.hasSearch?.type || 'text'}
               placeholder={tableInfo?.hasSearch?.placeholder || 'Search...'}
+              onChange={(e) => {
+                if (!e.target.value) return restoreRecords();
+                return null;
+              }}
+              onBlur={(e) => {
+                if (!e.target.value) return restoreRecords();
+                if (tableInfo?.hasSearch?.type === 'date') {
+                  return filterSearch(dayjs.utc(e.target.value)
+                    .format('DD/MM/YYYY'));
+                }
+              }}
               onKeyUp={(e) => {
+                if (tableInfo?.hasSearch?.type === 'date') return null;
+
                 clearTimeout(timer);
 
                 const value = e.target.value;
 
-                // if (value === '') return setTableList(records);
-                // if (value === '') return;
-
                 timer = setTimeout(() => {
-                  const flatted = tableData?.map((record) => flattenObject(record));
-                  const columnsNames = columns.map((col) => col.value);
-                  const filtered = [];
-
-                  columnsNames.forEach((cn) => {
-                    flatted?.forEach((record) => {
-                      if (
-                        record[cn]?.toString()
-                          .toLowerCase()
-                          ?.includes(value?.toLowerCase())
-                      ) {
-                        filtered.push(record);
-                      }
-                    });
-                  });
-
-                  const found = getUniqueObject(filtered, 'keyRecord');
-
-                  flatted.forEach((record) => {
-                    const row = document.getElementById(record.keyRecord);
-                    const foundItemsKeys = found.map(
-                      (item) => item.keyRecord.toString()
-                    );
-
-                    if (row && foundItemsKeys.includes(record.keyRecord.toString())) {
-                      row.style.display = '';
-                    } else {
-                      row.style.display = 'none';
-                    }
-                  })
+                  filterSearch(value);
                 }, 500);
               }}
             />
@@ -128,7 +189,7 @@ const Table = (props) => {
             ))}
           </tr>
         </thead>
-        <tbody ref={recordsRef}>
+        <tbody ref={tableBodyRef}>
           {tableData.map((record) => (
             <tr key={record.keyRecord} id={record.keyRecord}>
               {columns.map((col) => (
@@ -139,7 +200,7 @@ const Table = (props) => {
         </tbody>
       </table>
       {hasPagination && (<Pagination pagination={{ page: 1, lastPage: 20 }} />)}
-    </>
+    </div>
   );
 };
 

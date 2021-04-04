@@ -7,7 +7,8 @@ const columns = [
   { name: 'Datetime', value: 'datetime', id: 1 },
   { name: 'Insurance', value: 'insurance', id: 2 },
   { name: 'Status', value: 'status', id: 3 },
-  { name: 'Actions', value: 'actions', id: 4 },
+  { name: 'Patient', value: 'patient', id: 4 },
+  { name: 'Actions', value: 'actions', id: 5 },
 ];
 
 const AppointmentsList = ({ records }) => {
@@ -19,6 +20,7 @@ const AppointmentsList = ({ records }) => {
 
   const tableData = records.map((record) => ({
     keyRecord: record.id,
+    patient: record?.Patient?.name || 'Not Provided',
     datetime: record.datetime
       ? new Date(record.datetime).toLocaleString()
       : 'Not Provided',
@@ -52,10 +54,13 @@ const AppointmentsList = ({ records }) => {
         tableData={tableData}
         tableInfo={{
           visible: true,
-          hasSearch: true,
+          hasSearch: {
+            type: 'date',
+            placeholder: 'Appointment datetime',
+          },
           title: 'Appointments',
           message: records?.length
-            ? 'These are all appointments.'
+            ? 'Here are all your appointments. Please select a date to filter them.'
             : 'You do not have any appointments yet.',
         }}
       />
