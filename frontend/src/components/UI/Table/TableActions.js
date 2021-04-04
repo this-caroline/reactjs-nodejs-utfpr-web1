@@ -1,16 +1,18 @@
 
 import React from 'react';
-import { Search, Edit, Trash, X, Calendar } from 'react-feather';
+import { Search, Edit, Trash, X, Calendar, CheckCircle } from 'react-feather';
 
 /**
+ * @param {Object} check - Object with check/confirmation properties.
  * @param {Object} edit - Object with edit properties.
  * @param {Object} view - Object with view/search properties.
  * @param {Object} del - Object with delete properties.
- * @param {Object} send - Object with send properties.
+ * @param {Object} calendar - Object with calendar/schedule properties.
  * @param {Object} remove - Object with remove properties.
  */
 const TableActions = ({
   view,
+  check,
   calendar,
   edit,
   del,
@@ -24,6 +26,16 @@ const TableActions = ({
             cursor="pointer"
             size="16"
             color={view.color || '#669de6'}
+          />
+        </span>
+      )}
+
+      {check?.visible && (
+        <span onClick={check.onClick} title={check.title} className="mr-3">
+          <CheckCircle
+            cursor="pointer"
+            size="16"
+            color={check.color || '#03c474'}
           />
         </span>
       )}

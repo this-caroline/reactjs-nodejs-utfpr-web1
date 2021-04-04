@@ -70,7 +70,10 @@ const Pagination = ({ pagination }) => {
       {pagination.lastPage > maxPerPaginationBar &&
         pagingBarSize === maxPerPaginationBar &&
         getLastPageOfPaginationBar() !== pagination.lastPage && (
-          <span className={styles.Page} onClick={(evt) => setPage(evt, getNextPage())}>
+          <span
+            className={styles.Page}
+            onClick={(evt) => setPage(evt, getNextPage())}
+          >
             &gt;
           </span>
         )

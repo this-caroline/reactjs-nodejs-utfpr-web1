@@ -9,7 +9,15 @@ import { deletePatient } from '../../services/requests/patients';
 import { UNEXPECTED_ERROR_MSG } from '../../utils/contants';
 import PatientAppointmentsModal from './PatientAppointmentsModal';
 import { Creators as PatientsCreators } from '../../store/ducks/patients/reducer';
-import TableInfo from '../../components/UI/Table/TableInfo';
+
+const columns = [
+  { name: 'Name', value: 'name', id: 1 },
+  { name: 'CPF', value: 'cpf', id: 2 },
+  { name: 'Phone', value: 'phoneNumber', id: 3 },
+  { name: 'Birthdate', value: 'birthdate', id: 4 },
+  { name: 'City', value: 'city', id: 5 },
+  { name: 'Actions', value: 'actions', id: 6 },
+];
 
 const PatientsList = ({ records, setPatientModal }) => {
   const [appointmentsModal, setAppointmentsModal] = useState(null);
@@ -58,6 +66,45 @@ const PatientsList = ({ records, setPatientModal }) => {
     return 'You have not patients registered yet.';
   };
 
+  const tableData = records.map((patient) => ({
+    keyRecord: patient.id,
+    name: patient?.name || 'Not Provided',
+    cpf: patient?.cpf || 'Not Provided',
+    phoneNumber: patient?.phoneNumber || 'Not Provided',
+    birthdate: patient.birthdate 
+      ? new Date(patient.birthdate).toLocaleDateString()
+      : 'Not Provided',
+    city: patient?.Address?.city || 'Not provided',
+    actions: (
+      <TableActions
+        view={{
+          visible: true,
+          title: 'Click to view this patient',
+          onClick: () => setPatientModal({ patient, mode: 'view' }),
+        }}
+        calendar={{
+          visible: true,
+          title: "Click to manage patient's appointments",
+          onClick: () => setAppointmentsModal({
+            onClose: () => setAppointmentsModal(null),
+            data: patient,
+            mode: 'include',
+          }),
+        }}
+        del={{
+          visible: true,
+          title: 'Click to delete this patient',
+          onClick: () => handleDelete(patient.id),
+        }}
+        edit={{
+          visible: true,
+          title: 'Click to edit this patient',
+          onClick: () => setPatientModal({ patient, mode: 'edit' }),
+        }}
+      />
+    ),
+  }));
+
   return (
     <>
       {appointmentsModal && (
@@ -67,68 +114,22 @@ const PatientsList = ({ records, setPatientModal }) => {
           mode={appointmentsModal.mode}
         />
       )}
-      <TableInfo
-        title="Patients"
-        message={getMessage()}
-        addButton={{
+      <Table
+        columns={columns}
+        tableData={tableData}
+        tableInfo={{
           visible: true,
-          value: 'Add Patient',
-          title: 'Click to add a new patient',
-          onClick: () => setPatientModal({ mode: 'include' }),
+          title: 'Patients',
+          message: getMessage(),
+          hasSearch: true,
+          addButton: {
+            visible: true,
+            value: 'Add Patient',
+            title: 'Click to add a new patient',
+            onClick: () => setPatientModal({ mode: 'include' }),
+          },
         }}
       />
-      <Table>
-        <thead>
-          <tr>
-            <th scope="col">Name</th>
-            <th scope="col">CPF</th>
-            <th scope="col">Phone</th>
-            <th scope="col">Birthdate</th>
-            <th scope="col">City</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {records.map((patient) => (
-            <tr key={patient.id}>
-              <td>{patient.name}</td>
-              <td>{patient.cpf}</td>
-              <td>{patient.phoneNumber}</td>
-              <td>{new Date(patient.birthdate).toLocaleDateString()}</td>
-              <td>{patient?.Address?.city || 'Not provided'}</td>
-              <td>
-                <TableActions
-                  view={{
-                    visible: true,
-                    title: 'Click to view this patient',
-                    onClick: () => setPatientModal({ patient, mode: 'view' }),
-                  }}
-                  calendar={{
-                    visible: true,
-                    title: "Click to manage patient's appointments",
-                    onClick: () => setAppointmentsModal({
-                      onClose: () => setAppointmentsModal(null),
-                      data: patient,
-                      mode: 'include',
-                    }),
-                  }}
-                  del={{
-                    visible: true,
-                    title: 'Click to delete this patient',
-                    onClick: () => handleDelete(patient.id),
-                  }}
-                  edit={{
-                    visible: true,
-                    title: 'Click to edit this patient',
-                    onClick: () => setPatientModal({ patient, mode: 'edit' }),
-                  }}
-                />
-              </td>
-            </tr>
-          ))
-          }
-        </tbody>
-      </Table>
     </>
   );
 };

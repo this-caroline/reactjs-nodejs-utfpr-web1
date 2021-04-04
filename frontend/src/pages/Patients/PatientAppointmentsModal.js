@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Col, Container, Form, FormGroup, Input, Row } from 'reactstrap';
 import { Controller, useForm } from 'react-hook-form';
+import { Button, Col, Container, Form, FormGroup, Input, Row } from 'reactstrap';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import * as Yup from 'yup';
 import Swal from 'sweetalert2';
+import * as Yup from 'yup';
 
 import ModalForm from '../../components/UI/Modal';
 import useYupValidationResolver from '../../utils/yupValidationResolver';
@@ -118,7 +118,10 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
   const getAppointmentsGrid = () => {
     return (
       <>
-        <AppointmentsList records={data?.Appointments} />
+        <div className="table-responsive">
+          <AppointmentsList records={data?.Appointments} />
+        </div>
+
         <Form onSubmit={handleSubmit(onSubmit)}>
           {!!data?.Appointments?.length && (
             <h4 className="mb-4 mt-5">
@@ -210,7 +213,7 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
 
             <Col xl={6}>
               <FormGroup>
-                <RequiredLabel htmlFor="time">Appointment time</RequiredLabel>
+                <RequiredLabel htmlFor="time">Appointment Time</RequiredLabel>
                 <Controller
                   name="time"
                   control={control}
@@ -272,7 +275,7 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
 
   return (
     <ModalForm
-      title="Appointments"
+      title="Manage Appointments"
       subTitle={data?.appointments?.length
         ? 'These are all appointments of this patient.'
         : ''
