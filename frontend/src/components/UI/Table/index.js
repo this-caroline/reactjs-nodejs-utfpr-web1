@@ -1,4 +1,4 @@
-import React, { createRef, useEffect, useState } from 'react';
+import React, { createRef, useCallback, useEffect, useState } from 'react';
 import { Button, Col, Input, Row } from 'reactstrap';
 import { Plus } from 'react-feather';
 import dayjs from 'dayjs';
@@ -14,7 +14,7 @@ const flattenObject = function(ob) {
   var toReturn = {};
   
   for (var i in ob) {
-    if (!ob.hasOwnProperty(i) || i.toString().toLocaleLowerCase() === 'actions') {
+    if (!ob.hasOwnProperty(i) || i.toString().toLowerCase() === 'actions') {
       continue;
     }
     
@@ -39,7 +39,7 @@ const Table = (props) => {
   const today = dayjs(new Date()).format('YYYY-MM-DD');
   const tableBodyRef = createRef();
   const {
-    // tableId = '', // to handle correct table...
+    tableId = '',
     children,
     className,
     tableInfo,
@@ -50,12 +50,12 @@ const Table = (props) => {
   } = props;
   const [isReady, setReady] = useState(tableInfo?.hasSearch?.type !== 'date');
 
-  const setDataIndication = (length) => {
+  const setDataIndication = useCallback((length) => {
     const noDataEl = document.getElementById('no-data-indication-paragraph');
 
     if (!length && noDataEl) return true;
 
-    const containerEl = document.getElementById('custom-table-container');
+    const containerEl = document.getElementById(`${tableId}-custom-table-container`);
 
     if (containerEl) {
       if (!length) {
@@ -69,13 +69,13 @@ const Table = (props) => {
         if (noDataEl) containerEl?.removeChild(noDataEl);
       }
     }
-  };
+  }, [tableId]);
 
   const restoreRecords = () => {
     const flatted = tableData?.map((record) => flattenObject(record));
 
     flatted.forEach((record) => {
-      const row = document.getElementById(record.keyRecord);
+      const row = document.getElementById(`${tableId}-${record.keyRecord}`);
 
       if (row) row.style.display = '';
     });
@@ -83,7 +83,7 @@ const Table = (props) => {
     return setDataIndication(true);
   };
 
-  const filterSearch = React.useCallback((value) => {
+  const filterSearch = useCallback((value) => {
     const flatted = tableData?.map((record) => flattenObject(record));
     const columnsNames = columns.map((col) => col.value);
     const filtered = [];
@@ -102,9 +102,9 @@ const Table = (props) => {
 
     const found = getUniqueObject(filtered, 'keyRecord');
 
-    console.log(flatted, found);
+    console.log(flatted, found, value);
     flatted.forEach((record) => {
-      const row = document.getElementById(record.keyRecord);
+      const row = document.getElementById(`${tableId}-${record.keyRecord}`);
       const foundItemsKeys = found.map(
         (item) => item.keyRecord.toString()
       );
@@ -119,21 +119,21 @@ const Table = (props) => {
     });
 
     setDataIndication(found.length);
-  }, [columns, tableData]);
+  }, [columns, setDataIndication, tableData, tableId]);
 
   useEffect(() => {
     if (tableInfo?.hasSearch?.type === 'date') {
       setTimeout(() => {
-        filterSearch(today);
+        filterSearch(dayjs(new Date()).format('DD/MM/YYYY'));
         setReady(true);
       }, 1000);
     }
-  }, [filterSearch, tableInfo?.hasSearch?.type, today]);
+  }, [filterSearch, tableInfo?.hasSearch?.type]);
 
   return (
     <>
       <div
-        id="custom-table-container"
+        id={`${tableId}-custom-table-container`}
         className={isReady ? 'table-responsive w-100' : ''}
       >
         {tableInfo?.visible && (
@@ -165,8 +165,7 @@ const Table = (props) => {
             {tableInfo?.hasSearch && (
               <Input
                 className="form-control mb-3"
-                defaultValue={tableInfo?.hasSearch?.type === 'date' ? today : ''
-                }
+                defaultValue={tableInfo?.hasSearch?.type === 'date' ? today : ''}
                 style={{ width: tableInfo?.hasSearch?.width || '280px' }}
                 type={tableInfo?.hasSearch?.type || 'text'}
                 placeholder={tableInfo?.hasSearch?.placeholder || 'Search...'}
@@ -227,7 +226,7 @@ const Table = (props) => {
             </thead>
             <tbody ref={tableBodyRef}>
               {tableData.map((record) => (
-                <tr key={record.keyRecord} id={record.keyRecord}>
+                <tr key={record.keyRecord} id={`${tableId}-${record.keyRecord}`}>
                   {columns.map((col) => (
                     <td key={col.id}>{record[col?.value]}</td>
                   ))}

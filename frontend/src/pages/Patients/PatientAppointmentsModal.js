@@ -119,7 +119,10 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
     return (
       <>
         <div className="table-responsive">
-          <AppointmentsList records={data?.Appointments} />
+          <AppointmentsList
+            records={data?.Appointments}
+            patientsTableId="patients-appointments-table"
+          />
         </div>
 
         <Form onSubmit={handleSubmit(onSubmit)}>

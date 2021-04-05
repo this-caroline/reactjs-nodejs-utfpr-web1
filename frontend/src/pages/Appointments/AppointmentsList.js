@@ -3,24 +3,27 @@ import React from 'react';
 import Table from '../../components/UI/Table';
 import TableActions from '../../components/UI/Table/TableActions';
 
-const columns = [
-  { name: 'Datetime', value: 'datetime', id: 1 },
-  { name: 'Insurance', value: 'insurance', id: 2 },
-  { name: 'Status', value: 'status', id: 3 },
-  { name: 'Patient', value: 'patient', id: 4 },
-  { name: 'Actions', value: 'actions', id: 5 },
-];
-
-const AppointmentsList = ({ records }) => {
+const AppointmentsList = ({ records, patientsTableId }) => {
   // const handleDelete = (id) => {};
   // const handleConfirm = (record) => {};
   // const handleEdit = (record) => {};
-
   if (!records?.length) return null;
+
+  const columns = [
+    { name: 'Datetime', value: 'datetime', id: 1 },
+    { name: 'Insurance', value: 'insurance', id: 2 },
+    { name: 'Status', value: 'status', id: 3 },
+  ];
+
+  if (!patientsTableId) {
+    columns.push({ name: 'Patient', value: 'patientName', id: 4 });
+  }
+
+  columns.push({ name: 'Actions', value: 'actions', id: 5 });
 
   const tableData = records.map((record) => ({
     keyRecord: record.id,
-    patient: record?.Patient?.name || 'Not Provided',
+    patientName: record?.Patient?.name || 'Not Provided',
     datetime: record.datetime
       ? new Date(record.datetime).toLocaleString()
       : 'Not Provided',
@@ -52,15 +55,17 @@ const AppointmentsList = ({ records }) => {
       <Table
         columns={columns}
         tableData={tableData}
+        tableId={patientsTableId || 'schedule-table'}
         tableInfo={{
           visible: true,
+          // showDateInfo: !patientsTableId,
           hasSearch: {
-            type: 'date',
+            type: patientsTableId ? 'text' : 'date',
             placeholder: 'Appointment datetime',
           },
           title: 'Appointments',
           message: records?.length
-            ? 'Here are all your appointments. Please select a date to filter them.'
+            ? 'Here are all your appointments. Please select or enter a date to filter them.'
             : 'You do not have any appointments yet.',
         }}
       />
