@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Button,
@@ -21,6 +21,7 @@ import RequiredLabel from '../../components/UI/RequiredLabel';
 import InvalidInputMessage from '../../components/UI/InvalidInputMessage';
 import useYupValidationResolver from '../../utils/yupValidationResolver';
 import Toast from '../../components/UI/Toast';
+import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 import { INTERNAL_ERROR_MSG } from '../../utils/contants';
 import {
   createPatient,
@@ -89,8 +90,8 @@ const PatientModal = ({
   data,
   onClose,
   patientsList,
-  setPatientsList,
 }) => {
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const [isSubmitting, setSubmitting] = useState(false);
   const [fetchingPostalCode, setFetchingPostalCode] = useState(false);
@@ -135,13 +136,17 @@ const PatientModal = ({
               }]
           : [...patientsList].map((pat) => {
             if (pat.id.toString() === data.id.toString()) {
-              return { ...response.data.patient };
+              return {
+                ...response.data.patient,
+                User: { username: user.username },
+                Appointments: [...pat?.Appointments] || [],
+              };
             }
 
             return pat;
           });
 
-        setPatientsList(updatedPatients);
+        dispatch(PatientsActions.setPatients(updatedPatients));
         onClose();
         Toast.fire({
           icon: 'success',
@@ -149,6 +154,7 @@ const PatientModal = ({
         });
       } else throw new Error();
     } catch (error) {
+      console.log(error);
       setSubmitting(false);
       Swal.fire({
         icon: 'error',

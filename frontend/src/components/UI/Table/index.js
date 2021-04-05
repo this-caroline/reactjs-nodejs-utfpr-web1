@@ -102,7 +102,7 @@ const Table = (props) => {
 
     const found = getUniqueObject(filtered, 'keyRecord');
 
-    console.log(flatted, found, value);
+    // console.log(flatted, found, value);
     flatted.forEach((record) => {
       const row = document.getElementById(`${tableId}-${record.keyRecord}`);
       const foundItemsKeys = found.map(

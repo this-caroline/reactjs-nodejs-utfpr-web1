@@ -61,7 +61,6 @@ const AppointmentsList = ({ records, patientsTableId }) => {
           // showDateInfo: !patientsTableId,
           hasSearch: {
             type: patientsTableId ? 'text' : 'date',
-            placeholder: 'Appointment datetime',
           },
           title: 'Appointments',
           message: records?.length

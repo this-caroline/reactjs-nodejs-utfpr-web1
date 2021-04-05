@@ -42,9 +42,6 @@ const PatientsList = ({ records, setPatientModal }) => {
             dispatch(PatientsCreators.setPatients([...patients].filter(
               (pat) => pat.id.toString() !== id.toString())
             ));
-            // setPatientsList(
-            //   [...records].filter((pat) => pat.id.toString() !== id.toString())
-            // );
           } else throw new Error();
         } catch (error) {
           if (Swal.isVisible()) Swal.close();
