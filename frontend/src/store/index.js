@@ -1,13 +1,24 @@
-import { applyMiddleware, combineReducers, createStore, compose } from 'redux';
+import {
+  applyMiddleware,
+  combineReducers,
+  createStore,
+  compose,
+} from 'redux';
 import createSagaMiddleware from 'redux-saga';
 
 import auth, { Types as AuthTypes } from './ducks/auth/reducer';
+import appointments from './ducks/appointments/reducer';
 import insurances from './ducks/insurances/reducer';
 import patients from './ducks/patients/reducer';
-import { watchInsurances, watchPatients } from './rootSagas';
+import {
+  watchAppointments,
+  watchInsurances,
+  watchPatients,
+} from './rootSagas';
 
 const appReducer = combineReducers({
   auth,
+  appointments,
   insurances,
   patients,
 });
@@ -27,6 +38,7 @@ const store = createStore(
   composeEnhancers(applyMiddleware(sagaMiddleware))
 );
 
+sagaMiddleware.run(watchAppointments);
 sagaMiddleware.run(watchInsurances);
 sagaMiddleware.run(watchPatients);
 

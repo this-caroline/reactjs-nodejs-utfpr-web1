@@ -46,9 +46,12 @@ const getInsurances = (insurances) => {
 const PatientAppointmentsModal = ({ onClose, data, mode }) => {
   const dispatch = useDispatch();
   const { patients } = useSelector((state) => state.patients);
-  const [isSubmitting, setSubmitting] = useState(false);
   const insurances = useSelector((state) => state.insurances);
+  const appointments = patients.find(
+    (patient) => patient.id === data.id
+  )?.Appointments;
   const resolver = useYupValidationResolver(validationSchema);
+  const [isSubmitting, setSubmitting] = useState(false);
   const {
     control,
     errors,
@@ -105,7 +108,7 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
       Toast.fire({
         title: mode === 'edit'
           ? 'The appointment was successfully updated!'
-          : 'The appointment was successfully created!',
+          : 'The appointment was successfully registered!',
         icon: 'success',
       });
       onClose();
@@ -120,13 +123,14 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
       <>
         <div className="table-responsive">
           <AppointmentsList
-            records={data?.Appointments}
+            // records={data?.Appointments}
+            records={appointments}
             patientsTableId="patients-appointments-table"
           />
         </div>
 
         <Form onSubmit={handleSubmit(onSubmit)}>
-          {!!data?.Appointments?.length && (
+          {!!appointments?.length && (
             <h4 className="mb-4 mt-5">
               {mode === 'include' ? 'Include' : 'Edit'} Appointment
             </h4>

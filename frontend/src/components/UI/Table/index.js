@@ -7,6 +7,7 @@ import utc from 'dayjs/plugin/utc';
 import styles from './Table.module.css';
 import Pagination from '../Pagination';
 import { getUniqueObject } from '../../../utils/unique';
+import { Controller, useForm } from 'react-hook-form';
 
 dayjs.extend(utc);
 
@@ -36,7 +37,6 @@ const flattenObject = function(ob) {
 
 const Table = (props) => {
   let timer = null;
-  const today = dayjs(new Date()).format('YYYY-MM-DD');
   const tableBodyRef = createRef();
   const {
     tableId = '',
@@ -49,6 +49,7 @@ const Table = (props) => {
     ...rest
   } = props;
   const [isReady, setReady] = useState(tableInfo?.hasSearch?.type !== 'date');
+  const { control } = useForm({ mode: 'onBlur' });
 
   const setDataIndication = useCallback((length) => {
     const noDataEl = document.getElementById('no-data-indication-paragraph');
@@ -122,13 +123,18 @@ const Table = (props) => {
   }, [columns, setDataIndication, tableData, tableId]);
 
   useEffect(() => {
-    if (tableInfo?.hasSearch?.type === 'date') {
-      setTimeout(() => {
-        filterSearch(dayjs(new Date()).format('DD/MM/YYYY'));
+    if (!tableData?.length) setReady(true);
+
+    if (tableData?.length && tableInfo?.hasSearch?.type === 'date') {
+      // setTimeout(() => {
+        // const today = dayjs(new Date()).format('DD/MM/YYYY');
+
+        // filterSearch(today);
+        // setDate(today);
         setReady(true);
-      }, 1000);
+      // }, 1000);
     }
-  }, [filterSearch, tableInfo?.hasSearch?.type]);
+  }, [filterSearch, tableData?.length, tableInfo?.hasSearch?.type]);
 
   return (
     <>
@@ -162,36 +168,48 @@ const Table = (props) => {
                 {tableInfo?.addButton.value} <Plus size="16" />
               </Button>
             )}
-            {tableInfo?.hasSearch && (
-              <Input
-                className="form-control mb-3"
-                defaultValue={tableInfo?.hasSearch?.type === 'date' ? today : ''}
-                style={{ width: tableInfo?.hasSearch?.width || '280px' }}
-                type={tableInfo?.hasSearch?.type || 'text'}
-                placeholder={tableInfo?.hasSearch?.placeholder || 'Search...'}
-                disabled={!isReady}
-                onChange={(e) => {
-                  if (!e.target.value) return restoreRecords();
-                  return null;
-                }}
-                onBlur={(e) => {
-                  if (!e.target.value) return restoreRecords();
-                  if (tableInfo?.hasSearch?.type === 'date') {
-                    return filterSearch(dayjs.utc(e.target.value)
-                      .format('DD/MM/YYYY'));
-                  }
-                }}
-                onKeyUp={(e) => {
-                  if (tableInfo?.hasSearch?.type === 'date') return null;
-
-                  clearTimeout(timer);
-
-                  const value = e.target.value;
-
-                  timer = setTimeout(() => {
-                    filterSearch(value);
-                  }, 500);
-                }}
+            {(!!tableData?.length && tableInfo?.hasSearch) && (
+              <Controller
+                name="searchInput"
+                control={control}
+                defaultValue=""
+                render={({ value, onChange }) => (
+                  <Input
+                    // onChange={onChange}
+                    value={value}
+                    name="searchInput"
+                    id="searchInput"
+                    style={{ width: tableInfo?.hasSearch?.width || '280px' }}
+                    type={tableInfo?.hasSearch?.type || 'text'}
+                    placeholder={tableInfo?.hasSearch?.placeholder || 'Search...'}
+                    disabled={!isReady}
+                    className="form-control mb-3"
+                    onChange={(e) => {
+                      if (!e.target.value) restoreRecords();
+                      // setDate(e.target.value);
+                      onChange(e);
+                      return null;
+                    }}
+                    onBlur={(e) => {
+                      if (!e.target.value) return restoreRecords();
+                      if (tableInfo?.hasSearch?.type === 'date') {
+                        return filterSearch(dayjs.utc(e.target.value)
+                          .format('DD/MM/YYYY'));
+                      }
+                    }}
+                    onKeyUp={(e) => {
+                      if (tableInfo?.hasSearch?.type === 'date') return null;
+    
+                      clearTimeout(timer);
+    
+                      const value = e.target.value;
+    
+                      timer = setTimeout(() => {
+                        filterSearch(value);
+                      }, 500);
+                    }}
+                  />
+                )}
               />
             )}
             {!isReady && (
@@ -209,32 +227,34 @@ const Table = (props) => {
             )}
           </>
         )}
-        <table
-          className={!isReady
-            ? 'd-none'
-            : `${styles.Table} ${className || ''} table table-hover`
-          }
-          {...rest}
-        >
-          <>
-            <thead>
-              <tr>
-                {columns.map((column) => (
-                  <th key={column.value} scope="col">{column.name}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody ref={tableBodyRef}>
-              {tableData.map((record) => (
-                <tr key={record.keyRecord} id={`${tableId}-${record.keyRecord}`}>
-                  {columns.map((col) => (
-                    <td key={col.id}>{record[col?.value]}</td>
+        {!!tableData?.length && (
+          <table
+            className={!isReady
+              ? 'd-none'
+              : `${styles.Table} ${className || ''} table table-hover`
+            }
+            {...rest}
+          >
+            <>
+              <thead>
+                <tr>
+                  {columns.map((column) => (
+                    <th key={column.value} scope="col">{column.name}</th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </>
-        </table>
+              </thead>
+              <tbody ref={tableBodyRef}>
+                {tableData.map((record) => (
+                  <tr key={record.keyRecord} id={`${tableId}-${record.keyRecord}`}>
+                    {columns.map((col) => (
+                      <td key={col.id}>{record[col?.value]}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </>
+          </table>
+        )}
       </div>
       {(isReady && hasPagination) && (
         <Pagination pagination={{ page: 1, lastPage: 20 }} />
