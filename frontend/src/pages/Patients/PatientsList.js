@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 
 import Table from '../../components/UI/Table';
 import TableActions from '../../components/UI/Table/TableActions';
-import DeleteAlert from '../../components/UI/DeleteAlert';
+import ConfirmAlert from '../../components/UI/ConfirmAlert';
 import { deletePatient } from '../../services/requests/patients';
 import { UNEXPECTED_ERROR_MSG } from '../../utils/contants';
 import PatientAppointmentsModal from './PatientAppointmentsModal';
@@ -27,7 +27,7 @@ const PatientsList = ({ records, setPatientModal }) => {
   if (!records || !records?.length) return null;
 
   const handleDelete = (id) => {
-    DeleteAlert({
+    ConfirmAlert({
       hasLoading: true,
       text: 'The patient data will be permanently deleted.',
       confirmButtonText: 'Yes, delete patient',

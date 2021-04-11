@@ -1,10 +1,10 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import DeleteAlert from '../../components/UI/DeleteAlert';
 
 import Table from '../../components/UI/Table';
 import TableActions from '../../components/UI/Table/TableActions';
+import ConfirmAlert from '../../components/UI/ConfirmAlert';
 import { deleteInsurance } from '../../services/requests/insurances';
 import { UNEXPECTED_ERROR_MSG } from '../../utils/contants';
 import { Creators as InsurancesActions } from '../../store/ducks/insurances/reducer';
@@ -34,7 +34,7 @@ const InsurancesList = ({ records, setInsuranceModal }) => {
   };
 
   const handleDelete = (id) => {
-    DeleteAlert({
+    ConfirmAlert({
       hasLoading: true,
       text: 'The insurance data will be permanently deleted.',
       confirmButtonText: 'Yes, delete insurance',

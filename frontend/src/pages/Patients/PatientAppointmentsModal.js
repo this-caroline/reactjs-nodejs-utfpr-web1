@@ -21,6 +21,7 @@ import {
 } from '../../services/requests/appointments';
 import { INTERNAL_ERROR_MSG } from '../../utils/contants';
 import Toast from '../../components/UI/Toast';
+import { getInsurances } from '../../utils/insurances';
 
 dayjs.extend(utc);
 
@@ -29,19 +30,6 @@ const validationSchema = Yup.object().shape({
   time: Yup.string().required('Appointment time is required!'),
   insurance: Yup.string().nullable(true),
 });
-
-const getInsurances = (insurances) => {
-  if (!insurances || !insurances?.length) return [];
-
-  const insList = [...insurances].map((ins) => ({
-    label: ins.name,
-    value: ins.id,
-  }));
-
-  insList.unshift({ label: 'None', value: null });
-
-  return insList;
-}; 
 
 const PatientAppointmentsModal = ({ onClose, data }) => {
   const dispatch = useDispatch();
@@ -84,7 +72,7 @@ const PatientAppointmentsModal = ({ onClose, data }) => {
     };
 
     const response = editMode
-      ? await updateAppointment(editMode.id, payload) // implement the correct way...
+      ? await updateAppointment(editMode.id, payload)
       : await createAppointment(payload);
 
     if (response.success) {
@@ -146,9 +134,6 @@ const PatientAppointmentsModal = ({ onClose, data }) => {
 
         dispatch(PatientsActions.setPatients(updatedPatients));
       }
-      // const updatedAppointments = data?.Appointments?.map((appointment) => {
-      //   if (appointment.id === )
-      // });
 
       Toast.fire({
         title: editMode

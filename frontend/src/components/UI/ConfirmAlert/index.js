@@ -12,7 +12,7 @@ import { UNEXPECTED_ERROR_MSG } from '../../../utils/contants';
  * @param {String} payload.text - Alert text.
  * @param {Function} payload.onConfirm - Function is triggered after user confirm deletion.
  */
-const DeleteAlert = (payload) => {
+const ConfirmAlert = (payload) => {
   const {
     hasLoading,
     confirmButtonText,
@@ -55,4 +55,4 @@ const DeleteAlert = (payload) => {
     .catch(() => Swal.fire('Unexpected error', UNEXPECTED_ERROR_MSG, 'error'));
 };
 
-export default DeleteAlert;
+export default ConfirmAlert;

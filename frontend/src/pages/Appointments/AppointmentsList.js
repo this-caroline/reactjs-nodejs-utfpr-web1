@@ -1,20 +1,26 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
 import Table from '../../components/UI/Table';
 import TableActions from '../../components/UI/Table/TableActions';
-import { deleteAppointment } from '../../services/requests/appointments';
+import {
+  deleteAppointment,
+  updateAppointment,
+} from '../../services/requests/appointments';
 import { UNEXPECTED_ERROR_MSG } from '../../utils/contants';
-import DeleteAlert from '../../components/UI/DeleteAlert';
+import ConfirmAlert from '../../components/UI/ConfirmAlert';
 import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 import { Creators as AppointmentsActions } from '../../store/ducks/appointments/reducer';
 
+dayjs.extend(utc);
+
 const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
   const dispatch = useDispatch();
-  const { patients } = useSelector((state) => state.patients);
   const { appointments } = useSelector((state) => state.appointments);
-  // const handleConfirm = (record) => {};
+  const { patients } = useSelector((state) => state.patients);
 
   if (!records) return null;
 
@@ -30,6 +36,79 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
 
   columns.push({ name: 'Actions', value: 'actions', id: 5 });
 
+  const handleConfirm = async (record) => {
+    console.log(record);
+    ConfirmAlert({
+      hasLoading: true,
+      text: "Once confirmed you'll no longer be able to edit or delete this appointment.",
+      confirmButtonText: 'Confirm Appointment',
+      cancelButtonText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          const date = dayjs.utc(record?.datetime?.split('T')?.[0]);
+          const time = new Date(record?.datetime)
+              .toLocaleTimeString()
+              .split('')
+              .slice(0, 5).join('');
+          const payload = {
+            datetime: `${date.format('YYYY-MM-DD')} ${time}:00`,
+            isConfirmed: true,
+            InsuranceId: record.InsuranceId,
+            PatientId: record?.PatientId,
+          };
+          const response = await updateAppointment(record.id, payload);
+    
+          if (response.success) {
+            if (patients) {
+              dispatch(
+                PatientsActions.setPatients(
+                  [...patients].map((pat) => {
+                    if (pat.id?.toString() === record?.PatientId?.toString()) {
+                      return {
+                        ...pat,
+                        Appointments: [...pat?.Appointments].map((appt) => {
+                          if (appt.id?.toString() === record.id?.toString()) {
+                            return {
+                              ...record,
+                              isConfirmed: true,
+                            };
+                          }
+          
+                          return appt;
+                        })
+                      };
+                    }
+    
+                    return pat;
+                  })
+                )
+              );
+            }
+    
+            if (appointments) {
+              dispatch(
+                AppointmentsActions.setAppointments(
+                  [...appointments].map((appnt) => {
+                    if (appnt.id?.toString() === record.id?.toString()) {
+                      return { ...record, isConfirmed: true };
+                    }
+    
+                    return appnt;
+                  })
+                )
+              );
+            }
+
+            if (Swal.isVisible()) Swal.close();
+          } else throw new Error();
+        } catch (error) {
+          if (Swal.isVisible()) Swal.close();
+          Swal.fire('Unexpected error', UNEXPECTED_ERROR_MSG, 'error');
+        }
+      }
+    });
+  };
+
   // const handleEdit = async (record) => {
   //   try {
       
@@ -40,7 +119,7 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
   // };
 
   const handleDelete = async (record) => {
-    DeleteAlert({
+    ConfirmAlert({
       hasLoading: true,
       text: 'This appointment will be permanently deleted.',
       confirmButtonText: 'Yes, delete appointment',
@@ -100,16 +179,16 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
       : 'Not Provided',
     insurance: record?.Insurance?.name || 'None',
     status: record.isConfirmed ? 'Confirmed' : 'Not Confirmed',
-    actions: (
+    actions: !record.isConfirmed ? (
       <TableActions
         check={{
-          visible: true,
+          visible: !record.isConfirmed,
           title: 'Click to confirm this appointment',
-          onClick: () => {},
+          onClick: () => handleConfirm(record),
           // onClick: () => setPatientModal({ appointment, mode: 'view' }),
         }}
         edit={{
-          visible: true,
+          visible: !record.isConfirmed,
           title: 'Click to edit this appointment',
           onClick: () => {
             if (patientsTableId) {
@@ -127,12 +206,12 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
           // onClick: () => setPatientModal({ appointment, mode: 'edit' }),
         }}
         del={{
-          visible: true,
+          visible: !record.isConfirmed,
           title: 'Click to delete this appointment',
           onClick: () => handleDelete(record),
         }}
       />
-    ),
+    ) : 'No Actions',
   }));
 
   const getMessage = () => {
