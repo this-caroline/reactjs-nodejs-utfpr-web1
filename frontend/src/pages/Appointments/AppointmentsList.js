@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
@@ -14,6 +14,7 @@ import { UNEXPECTED_ERROR_MSG } from '../../utils/contants';
 import ConfirmAlert from '../../components/UI/ConfirmAlert';
 import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 import { Creators as AppointmentsActions } from '../../store/ducks/appointments/reducer';
+import AppointmentModal from './AppointmentModal';
 
 dayjs.extend(utc);
 
@@ -21,8 +22,9 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
   const dispatch = useDispatch();
   const { appointments } = useSelector((state) => state.appointments);
   const { patients } = useSelector((state) => state.patients);
+  const [appointmentModal, setAppointmentModal] = useState(null);
 
-  if (!records) return null;
+  if (!records || !appointments) return null;
 
   const columns = [
     { name: 'Datetime', value: 'datetime', id: 1 },
@@ -37,7 +39,6 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
   columns.push({ name: 'Actions', value: 'actions', id: 5 });
 
   const handleConfirm = async (record) => {
-    console.log(record);
     ConfirmAlert({
       hasLoading: true,
       text: "Once confirmed you'll no longer be able to edit or delete this appointment.",
@@ -109,15 +110,6 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
     });
   };
 
-  // const handleEdit = async (record) => {
-  //   try {
-      
-  //   } catch (error) {
-  //     if (Swal.isVisible()) Swal.close();
-  //     Swal.fire('Unexpected error', UNEXPECTED_ERROR_MSG, 'error');
-  //   }
-  // };
-
   const handleDelete = async (record) => {
     ConfirmAlert({
       hasLoading: true,
@@ -185,7 +177,6 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
           visible: !record.isConfirmed,
           title: 'Click to confirm this appointment',
           onClick: () => handleConfirm(record),
-          // onClick: () => setPatientModal({ appointment, mode: 'view' }),
         }}
         edit={{
           visible: !record.isConfirmed,
@@ -200,10 +191,14 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
                 editAppointmentForm.scrollIntoView();  
               }
 
-              setEditMode(record);
+              return setEditMode(record);
             }
+
+            return setAppointmentModal({
+              data: record,
+              onClose: () => setAppointmentModal(null),
+            });
           },
-          // onClick: () => setPatientModal({ appointment, mode: 'edit' }),
         }}
         del={{
           visible: !record.isConfirmed,
@@ -228,6 +223,12 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
 
   return (
     <>
+      {appointmentModal && (
+        <AppointmentModal
+          data={appointmentModal.data}
+          onClose={appointmentModal.onClose}
+        /> 
+      )}
       <Table
         columns={columns}
         tableData={tableData.sort((a, b) => a - b)}

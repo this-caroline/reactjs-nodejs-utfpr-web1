@@ -1,8 +1,13 @@
 import React from 'react';
 
-const LoadingPage = ({ message = 'Please wait. The page is loading...' }) => {
+const LoadingPage = (props) => {
+  const { message = 'Please wait. The page is loading...', ...rest } = props;
+
   return (
-    <div className="d-flex w-100 justify-content-center align-items-start mt-2">
+    <div
+      className="d-flex w-100 justify-content-center align-items-start mt-2"
+      {...rest}
+    >
       <div className="d-flex align-items-center">
         <span className="mr-3">{message}</span>
         <div

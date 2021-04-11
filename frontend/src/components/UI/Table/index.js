@@ -1,4 +1,4 @@
-import React, { createRef, useCallback, useEffect, useState } from 'react';
+import React, { createRef, useCallback, useEffect } from 'react';
 import { Button, Col, Input, Row } from 'reactstrap';
 import { Plus } from 'react-feather';
 import dayjs from 'dayjs';
@@ -48,7 +48,7 @@ const Table = (props) => {
     hasPagination = false,
     ...rest
   } = props;
-  const [isReady, setReady] = useState(tableInfo?.hasSearch?.type !== 'date');
+  // const [isReady, setReady] = useState(tableInfo?.hasSearch?.type !== 'date');
   const { control } = useForm({ mode: 'onBlur' });
 
   const setDataIndication = useCallback((length) => {
@@ -123,7 +123,7 @@ const Table = (props) => {
   }, [columns, setDataIndication, tableData, tableId]);
 
   useEffect(() => {
-    if (!tableData?.length) setReady(true);
+    // if (!tableData?.length) setReady(true);
 
     if (tableData?.length && tableInfo?.hasSearch?.type === 'date') {
       // setTimeout(() => {
@@ -131,7 +131,7 @@ const Table = (props) => {
 
         // filterSearch(today);
         // setDate(today);
-        setReady(true);
+        // setReady(true);
       // }, 1000);
     }
   }, [filterSearch, tableData?.length, tableInfo?.hasSearch?.type]);
@@ -140,7 +140,8 @@ const Table = (props) => {
     <>
       <div
         id={`${tableId}-custom-table-container`}
-        className={isReady ? 'table-responsive w-100' : ''}
+        className="table-responsive w-100"
+        // className={isReady ? 'table-responsive w-100' : ''}
       >
         {tableInfo?.visible && (
           <>
@@ -150,10 +151,11 @@ const Table = (props) => {
                   {tableInfo?.title}
                 </h3>
                 <p className="text-muted">
-                  {isReady
+                  {tableInfo?.message}
+                  {/* {isReady
                     ? tableInfo?.message
                     : 'You data will appear soon in a table bellow.'
-                  }
+                  } */}
                 </p>
               </Col>
             </Row>
@@ -182,7 +184,7 @@ const Table = (props) => {
                     style={{ width: tableInfo?.hasSearch?.width || '280px' }}
                     type={tableInfo?.hasSearch?.type || 'text'}
                     placeholder={tableInfo?.hasSearch?.placeholder || 'Search...'}
-                    disabled={!isReady}
+                    // disabled={!isReady}
                     className="form-control mb-3"
                     onChange={(e) => {
                       if (!e.target.value) restoreRecords();
@@ -212,27 +214,28 @@ const Table = (props) => {
                 )}
               />
             )}
-            {!isReady && (
-              <Row className="d-flex justify-content-start text-align-left">
-                <Col>
-                <div className="d-flex align-items-start">
-                  <span className="mr-3">Please wait. Loading data...</span>
-                  <div
-                    className="spinner-border text-primary spinner-border-sm"
-                    role="status"
-                  />
-                </div>
-                </Col>
-              </Row>
-            )}
+            {/* {!isReady && (
+            <Row className="d-flex justify-content-start text-align-left">
+              <Col>
+              <div className="d-flex align-items-start">
+                <span className="mr-3">Please wait. Loading data...</span>
+                <div
+                  className="spinner-border text-primary spinner-border-sm"
+                  role="status"
+                />
+              </div>
+              </Col>
+            </Row>
+            )} */}
           </>
         )}
         {!!tableData?.length && (
           <table
-            className={!isReady
-              ? 'd-none'
-              : `${styles.Table} ${className || ''} table table-hover`
-            }
+            // className={!isReady
+            //   ? 'd-none'
+            //   : `${styles.Table} ${className || ''} table table-hover`
+            // }
+            className={`${styles.Table} ${className || ''} table table-hover`}
             {...rest}
           >
             <>
@@ -256,7 +259,7 @@ const Table = (props) => {
           </table>
         )}
       </div>
-      {(isReady && hasPagination) && (
+      {(/* isReady && */ hasPagination) && (
         <Pagination pagination={{ page: 1, lastPage: 20 }} />
       )}
     </>

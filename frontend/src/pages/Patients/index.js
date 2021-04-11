@@ -13,36 +13,13 @@ const Patients = () => {
   const patients = useSelector((state) => state.patients);
   const dispatch = useDispatch();
   const [patientModal, setPatientModal] = useState(null);
-  // const [patientsList, setPatientsList] = useState(null);
 
   useEffect(() => {
-    // (async () => {
-    //   try {
-    //     dispatch(InsurancesActions.fetchInsurances());
-    //     const response = await fetchPatients();
-
-    //     if (response.success) {
-    //       setPatientsList(response.data?.patients || []);
-    //     } else throw new Error();
-    //   } catch (error) {
-    //     Swal.fire('Something went wrong!', INTERNAL_ERROR_MSG, 'error');
-    //   }
-
-    //   setLoading(false);
-    // })();
     dispatch(InsurancesActions.fetchInsurances());
     dispatch(PatientsActions.fetchPatients());
   }, [dispatch]);
 
   if (!patients || !insurances) return <LoadingPage />;
-  // if (patients.loading || insurances.loading) return <LoadingPage />;
-  // if (
-  //   (!patients.loading && !patients.patients) ||
-  //   (!insurances.loading && !insurances.insurances)
-  // ) {
-  //   /** TO DO: Implement appropriate component to handle error messages... */
-  //   return <h2>{INTERNAL_ERROR_MSG}</h2>;
-  // }
 
   return (
     <Container fluid className="mt-4 w-100">
