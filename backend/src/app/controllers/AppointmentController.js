@@ -1,3 +1,5 @@
+const { Op } = require("sequelize");
+
 const Insurance = require('../models').Insurance;
 const Patient = require('../models').Patient;
 const Appointment = require('../models').Appointment;
@@ -7,6 +9,18 @@ module.exports = {
     const { datetime, isConfirmed, InsuranceId, PatientId } = request.body;
 
     try {
+      const appointments = await Appointment.findAll({
+        where: { datetime }
+      });
+
+      if (appointments && appointments.length) {
+        return response.status(400).json({
+          success: false,
+          message: 'This time is not available.',
+          field: 'time',
+        });
+      }
+
       const appointment = await Appointment.create({
         datetime,
         isConfirmed,
@@ -35,6 +49,18 @@ module.exports = {
     const { datetime, isConfirmed, InsuranceId = null, PatientId } = request.body;
 
     try {
+      const appointments = await Appointment.findAll({
+        where: { datetime, id: { [Op.not]: id } }
+      });
+
+      if (appointments && appointments.length) {
+        return response.status(400).json({
+          success: false,
+          message: 'This time is not available.',
+          field: 'time',
+        });
+      }
+
       const appointment = await Appointment.findByPk(id);
 
       if (!appointment) throw new Error();
