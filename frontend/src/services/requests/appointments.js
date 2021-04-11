@@ -21,7 +21,13 @@ export const createAppointment = async (payload) => {
     } else throw new Error();
   } catch (error) {
     /** TO DO: Implement error handling... */
-    return { success: false, data: null, error };
+    return {
+      success: false,
+      data: null,
+      status: error?.response?.status,
+      error: error?.response?.data?.message || error,
+      field: error?.response?.data?.field || null,
+    };
   }
 };
 
@@ -34,7 +40,13 @@ export const updateAppointment = async (id, payload) => {
     } else throw new Error();
   } catch (error) {
     /** TO DO: Implement error handling... */
-    return { success: false, data: null, error };
+    return {
+      success: false,
+      data: null,
+      status: error?.response?.status,
+      error: error?.response?.data?.message || error,
+      field: error?.response?.data?.field || null,
+    };
   }
 };
 

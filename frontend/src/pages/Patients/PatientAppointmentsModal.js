@@ -31,13 +31,14 @@ const validationSchema = Yup.object().shape({
   insurance: Yup.string().nullable(true),
 });
 
-const PatientAppointmentsModal = ({ onClose, data }) => {
+const PatientAppointmentsModal = ({ onClose, pId }) => {
   const dispatch = useDispatch();
   const { patients } = useSelector((state) => state.patients);
+  const data = patients.find((pat) => pat.id?.toString() === pId?.toString());
   const insurances = useSelector((state) => state.insurances);
-  const appointments = patients.find(
-    (patient) => patient.id === data.id
-  )?.Appointments;
+  // const appointments = patients.find(
+  //   (patient) => patient.id === data.id
+  // )?.Appointments;
   const resolver = useYupValidationResolver(validationSchema);
   const [isSubmitting, setSubmitting] = useState(false);
   const [editMode, setEditMode] = useState(null);
@@ -46,6 +47,7 @@ const PatientAppointmentsModal = ({ onClose, data }) => {
     errors,
     handleSubmit,
     setValue,
+    setError,
     reset,
   } = useForm({ resolver, mode: 'onBlur' });
 
@@ -143,8 +145,16 @@ const PatientAppointmentsModal = ({ onClose, data }) => {
       });
       onClose();
     } else {
-      Swal.fire('Something went wrong!', INTERNAL_ERROR_MSG, 'error');
       setSubmitting(false);
+
+      if (response?.status === 400 && response?.field === 'time') {
+        return setError('time', {
+          type: 'manual',
+          message: response.error,
+        });
+      }
+
+      Swal.fire('Something went wrong!', INTERNAL_ERROR_MSG, 'error');
     }
   };
 
@@ -153,14 +163,14 @@ const PatientAppointmentsModal = ({ onClose, data }) => {
       <>
         <div className="table-responsive">
           <AppointmentsList
-            records={appointments}
+            records={data?.Appointments || []}
             patientsTableId="patients-appointments-table"
             setEditMode={setEditMode}
           />
         </div>
 
         <Form onSubmit={handleSubmit(onSubmit)} id="patient-modal-appointments">
-          {!!appointments?.length && (
+          {!!data?.Appointments?.length && (
             <h4 className="mb-4 mt-5">
               {!editMode ? 'Include' : 'Edit'} Appointment
             </h4>

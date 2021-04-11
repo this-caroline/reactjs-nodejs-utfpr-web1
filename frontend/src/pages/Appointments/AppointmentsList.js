@@ -24,7 +24,7 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
   const { patients } = useSelector((state) => state.patients);
   const [appointmentModal, setAppointmentModal] = useState(null);
 
-  if (!records || !appointments) return null;
+  if (!records || (!patientsTableId && !appointments)) return null;
 
   const columns = [
     { name: 'Datetime', value: 'datetime', id: 1 },
@@ -58,7 +58,7 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
             PatientId: record?.PatientId,
           };
           const response = await updateAppointment(record.id, payload);
-    
+
           if (response.success) {
             if (patients) {
               dispatch(

@@ -37,6 +37,7 @@ const AppointmentModal = ({ data, onClose }) => {
     control,
     errors,
     handleSubmit,
+    setError,
     reset,
   } = useForm({ resolver, mode: 'onBlur' });
 
@@ -49,52 +50,58 @@ const AppointmentModal = ({ data, onClose }) => {
   const onSubmit = async (values) => {
     setSubmitting(true);
 
-    try {
-      const insId = parseInt(values.insurance);
-      const payload = {
-        datetime: `${dayjs.utc(values.date).format('YYYY-MM-DD')} ${values.time}:00`,
-        isConfirmed: false,
-        InsuranceId: ['NaN', NaN].includes(insId) ? null : insId,
-        PatientId: data.PatientId,
-      };
-  
-      const response = await updateAppointment(data.id, payload);
-  
-      if (response.success) {
-        dispatch(
-          AppointmentsActions.setAppointments(
-            [...appointments].map((appnt) => {
-              if (appnt.id?.toString() === data.id?.toString()) {
-                return {
-                  ...data,
-                  ...response.data?.appointment,
-                  Insurance: values.insurance
-                    ? {
-                        name: getInsurances(insurances?.insurances)
-                          .find((ins) =>
-                            ins?.value?.toString() === values?.insurance?.toString()
-                          )?.label,
-                        id: ['NaN', NaN, ''].includes(insId) ? null : insId,
-                      }
-                    : null,
-                };
-              }
+    const insId = parseInt(values.insurance);
+    const payload = {
+      datetime: `${dayjs.utc(values.date).format('YYYY-MM-DD')} ${values.time}:00`,
+      isConfirmed: false,
+      InsuranceId: ['NaN', NaN].includes(insId) ? null : insId,
+      PatientId: data.PatientId,
+    };
 
-              return appnt;
-            })
-          )
-        );
+    const response = await updateAppointment(data.id, payload);
 
-        Toast.fire({
-          title: 'The appointment was successfully updated!',
-          icon: 'success',
-        });
-        onClose();
-      } else throw new Error();
-    } catch (error) {
-      Swal.fire('Something went wrong!', INTERNAL_ERROR_MSG, 'error');
+    if (response.success) {
+      dispatch(
+        AppointmentsActions.setAppointments(
+          [...appointments].map((appnt) => {
+            if (appnt.id?.toString() === data.id?.toString()) {
+              return {
+                ...data,
+                ...response.data?.appointment,
+                Insurance: values.insurance
+                  ? {
+                      name: getInsurances(insurances?.insurances)
+                        .find((ins) =>
+                          ins?.value?.toString() === values?.insurance?.toString()
+                        )?.label,
+                      id: ['NaN', NaN, ''].includes(insId) ? null : insId,
+                    }
+                  : null,
+              };
+            }
+
+            return appnt;
+          })
+        )
+      );
+
+      Toast.fire({
+        title: 'The appointment was successfully updated!',
+        icon: 'success',
+      });
+      onClose();
+    } else {
       setSubmitting(false);
-    }
+
+      if (response?.status === 400 && response?.field === 'time') {
+        return setError('time', {
+          type: 'manual',
+          message: response.error,
+        });
+      }
+
+      Swal.fire('Something went wrong!', INTERNAL_ERROR_MSG, 'error');
+    };
   };
 
   return (

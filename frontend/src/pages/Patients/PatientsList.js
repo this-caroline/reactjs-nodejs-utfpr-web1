@@ -84,7 +84,7 @@ const PatientsList = ({ records, setPatientModal }) => {
           title: "Click to manage patient's appointments",
           onClick: () => setAppointmentsModal({
             onClose: () => setAppointmentsModal(null),
-            data: patient,
+            pId: patient.id,
           }),
         }}
         del={{
@@ -106,7 +106,7 @@ const PatientsList = ({ records, setPatientModal }) => {
       {appointmentsModal && (
         <PatientAppointmentsModal
           onClose={appointmentsModal.onClose}
-          data={appointmentsModal.data}
+          pId={appointmentsModal.pId}
         />
       )}
       <Table
