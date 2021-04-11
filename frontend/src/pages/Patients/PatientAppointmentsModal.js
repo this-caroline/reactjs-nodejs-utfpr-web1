@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Controller, useForm } from 'react-hook-form';
 import { Button, Col, Container, Form, FormGroup, Input, Row } from 'reactstrap';
@@ -43,7 +43,7 @@ const getInsurances = (insurances) => {
   return insList;
 }; 
 
-const PatientAppointmentsModal = ({ onClose, data, mode }) => {
+const PatientAppointmentsModal = ({ onClose, data }) => {
   const dispatch = useDispatch();
   const { patients } = useSelector((state) => state.patients);
   const insurances = useSelector((state) => state.insurances);
@@ -52,11 +52,26 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
   )?.Appointments;
   const resolver = useYupValidationResolver(validationSchema);
   const [isSubmitting, setSubmitting] = useState(false);
+  const [editMode, setEditMode] = useState(null);
   const {
     control,
     errors,
     handleSubmit,
+    setValue,
+    reset,
   } = useForm({ resolver, mode: 'onBlur' });
+
+  useEffect(() => {
+    if (editMode) {
+        const time = new Date(editMode?.datetime)
+          .toLocaleTimeString()
+          .split('')
+          .slice(0, 5).join('');
+      setValue('insurance', editMode?.Insurance?.id?.toString());
+      setValue('date', editMode?.datetime?.split('T')?.[0]);
+      setValue('time', time);
+    } else reset();
+  }, [editMode, setValue, reset]);
 
   const onSubmit = async (values) => {
     setSubmitting(true);
@@ -65,15 +80,15 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
       datetime: `${dayjs.utc(values.date).format('YYYY-MM-DD')} ${values.time}:00`,
       isConfirmed: false,
       InsuranceId: values.insurance,
-      PatientId: data.id,
+      PatientId: editMode ? editMode.PatientId : data.id,
     };
 
-    const response = mode === 'edit'
-      ? await updateAppointment(0, payload) // implement the correct way...
+    const response = editMode
+      ? await updateAppointment(editMode.id, payload) // implement the correct way...
       : await createAppointment(payload);
 
     if (response.success) {
-      if (mode === 'include') {
+      if (!editMode) {
         const updatedPatients = [...patients].map((pat) => {
           if (pat.id === data.id) {
             return {
@@ -100,13 +115,43 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
         });
 
         dispatch(PatientsActions.setPatients(updatedPatients));
+      } else {
+        const updatedPatients = [...patients].map((pat) => {
+          if (pat.id === data.id) {
+            return {
+              ...pat,
+              Appointments: [...pat.Appointments].map((appt) => {
+                if (appt.id?.toString() === editMode.id?.toString()) {
+                  return {
+                    ...response.data?.appointment,
+                    Insurance: values.insurance ?
+                      {
+                        name: getInsurances(insurances?.insurances)
+                          .find((ins) =>
+                            ins?.value?.toString() === values?.insurance?.toString()
+                          )?.label,
+                        id: parseInt(values.insurance),
+                      }
+                    : null,
+                  };
+                }
+
+                return appt;
+              })
+            };
+          }
+
+          return pat;
+        });
+
+        dispatch(PatientsActions.setPatients(updatedPatients));
       }
       // const updatedAppointments = data?.Appointments?.map((appointment) => {
       //   if (appointment.id === )
       // });
 
       Toast.fire({
-        title: mode === 'edit'
+        title: editMode
           ? 'The appointment was successfully updated!'
           : 'The appointment was successfully registered!',
         icon: 'success',
@@ -123,16 +168,16 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
       <>
         <div className="table-responsive">
           <AppointmentsList
-            // records={data?.Appointments}
             records={appointments}
             patientsTableId="patients-appointments-table"
+            setEditMode={setEditMode}
           />
         </div>
 
-        <Form onSubmit={handleSubmit(onSubmit)}>
+        <Form onSubmit={handleSubmit(onSubmit)} id="patient-modal-appointments">
           {!!appointments?.length && (
             <h4 className="mb-4 mt-5">
-              {mode === 'include' ? 'Include' : 'Edit'} Appointment
+              {!editMode ? 'Include' : 'Edit'} Appointment
             </h4>
           )}
           <Row>
@@ -170,7 +215,7 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
                 <Controller
                   name="insurance"
                   control={control}
-                  defaultValue={data?.InsuranceId || ''}
+                  defaultValue={editMode?.Insurance?.id || ''}
                   render={({ onBlur, onChange, value }) => (
                     <Select
                       options={getInsurances(insurances?.insurances)}
@@ -198,7 +243,7 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
                 <Controller
                   name="date"
                   control={control}
-                  defaultValue={data?.datetime || ''}
+                  defaultValue=""
                   render={({ onBlur, onChange, value }) => (
                     <Input
                       onChange={onChange}
@@ -224,7 +269,7 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
                 <Controller
                   name="time"
                   control={control}
-                  defaultValue={data?.time || ''}
+                  defaultValue=""
                   render={({ onBlur, onChange, value }) => (
                     <Input
                       onChange={onChange}
@@ -251,11 +296,15 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
               type="button"
               className="width-lg pl-4 pr-4"
               title="Click to cancel and discard all changes"
-              onClick={() => onClose()}
+              onClick={() => {
+                reset();
+                if (editMode) return setEditMode(null);
+                return onClose();
+              }}
               disabled={isSubmitting}
               outline
             >
-              Cancel
+              {editMode ? 'Cancel Editing' : 'Cancel'}
             </Button>
 
             <Button
@@ -264,7 +313,7 @@ const PatientAppointmentsModal = ({ onClose, data, mode }) => {
               size="md"
               className="width-lg ml-2 pl-4 pr-4"
               title={
-                `Click to ${mode === 'edit' ? 'edit' : 'include'} this appointment`
+                `Click to ${editMode ? 'edit' : 'include'} this appointment`
               }
               disabled={isSubmitting}
             >

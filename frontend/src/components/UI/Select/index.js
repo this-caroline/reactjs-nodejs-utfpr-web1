@@ -5,7 +5,8 @@ const Select = (props) => {
 
   return (
     <select
-      defaultValue={value}
+      // defaultValue={value}
+      value={value}
       className={hasError ? 'is-invalid form-control' : 'form-control'}
       {...rest}
     >

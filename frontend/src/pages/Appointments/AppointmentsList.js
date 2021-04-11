@@ -10,12 +10,12 @@ import DeleteAlert from '../../components/UI/DeleteAlert';
 import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 import { Creators as AppointmentsActions } from '../../store/ducks/appointments/reducer';
 
-const AppointmentsList = ({ records, patientsTableId }) => {
+const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
   const dispatch = useDispatch();
   const { patients } = useSelector((state) => state.patients);
   const { appointments } = useSelector((state) => state.appointments);
   // const handleConfirm = (record) => {};
-  // const handleEdit = (record) => {};
+
   if (!records) return null;
 
   const columns = [
@@ -29,6 +29,15 @@ const AppointmentsList = ({ records, patientsTableId }) => {
   }
 
   columns.push({ name: 'Actions', value: 'actions', id: 5 });
+
+  // const handleEdit = async (record) => {
+  //   try {
+      
+  //   } catch (error) {
+  //     if (Swal.isVisible()) Swal.close();
+  //     Swal.fire('Unexpected error', UNEXPECTED_ERROR_MSG, 'error');
+  //   }
+  // };
 
   const handleDelete = async (record) => {
     DeleteAlert({
@@ -72,11 +81,12 @@ const AppointmentsList = ({ records, patientsTableId }) => {
               );
             }
 
+            if (setEditMode) setEditMode(null);
             if (Swal.isVisible()) Swal.close();
           } else throw new Error();
         } catch (error) {
           if (Swal.isVisible()) Swal.close();
-          Swal.fire('Unexpected error', UNEXPECTED_ERROR_MSG, 'error');  
+          Swal.fire('Unexpected error', UNEXPECTED_ERROR_MSG, 'error');
         }
       },
     });
@@ -98,15 +108,28 @@ const AppointmentsList = ({ records, patientsTableId }) => {
           onClick: () => {},
           // onClick: () => setPatientModal({ appointment, mode: 'view' }),
         }}
+        edit={{
+          visible: true,
+          title: 'Click to edit this appointment',
+          onClick: () => {
+            if (patientsTableId) {
+              const editAppointmentForm = document.getElementById(
+                'patient-modal-appointments'
+              );
+
+              if (editAppointmentForm) {
+                editAppointmentForm.scrollIntoView();  
+              }
+
+              setEditMode(record);
+            }
+          },
+          // onClick: () => setPatientModal({ appointment, mode: 'edit' }),
+        }}
         del={{
           visible: true,
           title: 'Click to delete this appointment',
           onClick: () => handleDelete(record),
-        }}
-        edit={{
-          visible: true,
-          title: 'Click to edit this appointment',
-          // onClick: () => setPatientModal({ appointment, mode: 'edit' }),
         }}
       />
     ),
