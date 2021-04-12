@@ -1,4 +1,4 @@
-import React, { createRef, useCallback, useEffect } from 'react';
+import React, { createRef, useCallback, useEffect, useState } from 'react';
 import { Button, Col, Input, Row } from 'reactstrap';
 import { Plus } from 'react-feather';
 import dayjs from 'dayjs';
@@ -50,6 +50,9 @@ const Table = (props) => {
   } = props;
   // const [isReady, setReady] = useState(tableInfo?.hasSearch?.type !== 'date');
   const { control } = useForm({ mode: 'onBlur' });
+  const [result, setResult] = useState(
+    tableData?.map((record) => flattenObject(record))
+  );
 
   const setDataIndication = useCallback((length) => {
     const noDataEl = document.getElementById('no-data-indication-paragraph');
@@ -75,12 +78,7 @@ const Table = (props) => {
   const restoreRecords = () => {
     const flatted = tableData?.map((record) => flattenObject(record));
 
-    flatted.forEach((record) => {
-      const row = document.getElementById(`${tableId}-${record.keyRecord}`);
-
-      if (row) row.style.display = '';
-    });
-
+    setResult(flatted);
     return setDataIndication(true);
   };
 
@@ -102,60 +100,57 @@ const Table = (props) => {
     });
 
     const found = getUniqueObject(filtered, 'keyRecord');
+    const auxFounded = [];
+    const foundItemsKeys = found.map(
+      (item) => item.keyRecord.toString()
+    );
 
     // console.log(flatted, found, value);
     flatted.forEach((record) => {
-      const row = document.getElementById(`${tableId}-${record.keyRecord}`);
-      const foundItemsKeys = found.map(
-        (item) => item.keyRecord.toString()
-      );
-
-      if (row) {
         if (foundItemsKeys.includes(record.keyRecord.toString())) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
+          auxFounded.push(record);
         }
-      }
     });
 
+    setResult(found);
     setDataIndication(found.length);
-  }, [columns, setDataIndication, tableData, tableId]);
+  }, [columns, setDataIndication, tableData]);
 
   useEffect(() => {
-    // if (!tableData?.length) setReady(true);
+    setResult(tableData?.map((record) => flattenObject(record)));
+  }, [tableData]);
 
-    if (tableData?.length && tableInfo?.hasSearch?.type === 'date') {
-      // setTimeout(() => {
-        // const today = dayjs(new Date()).format('DD/MM/YYYY');
+  const resultWithActions = result.map((item) => ({
+    ...item,
+    actions: tableData?.map((item) => ({
+      key: item.keyRecord,
+      content: item.actions,
+    })).find((actItem) =>
+      actItem.key.toString() === item.keyRecord.toString()
+    )?.content,
+  }));
 
-        // filterSearch(today);
-        // setDate(today);
-        // setReady(true);
-      // }, 1000);
-    }
-  }, [filterSearch, tableData?.length, tableInfo?.hasSearch?.type]);
+  // console.log(result, tableData);
+  // console.log(result, resultWithActions);
 
   return (
     <>
       <div
         id={`${tableId}-custom-table-container`}
         className="table-responsive w-100"
-        // className={isReady ? 'table-responsive w-100' : ''}
       >
         {tableInfo?.visible && (
           <>
             <Row className="mr-2">
               <Col>
-                <h3 style={{ color: '#515151' }} className="font-weight-bold h5 mb-1">
+                <h3
+                  style={{ color: '#515151' }}
+                  className="font-weight-bold h5 mb-1"
+                >
                   {tableInfo?.title}
                 </h3>
                 <p className="text-muted">
                   {tableInfo?.message}
-                  {/* {isReady
-                    ? tableInfo?.message
-                    : 'You data will appear soon in a table bellow.'
-                  } */}
                 </p>
               </Col>
             </Row>
@@ -214,27 +209,10 @@ const Table = (props) => {
                 )}
               />
             )}
-            {/* {!isReady && (
-            <Row className="d-flex justify-content-start text-align-left">
-              <Col>
-              <div className="d-flex align-items-start">
-                <span className="mr-3">Please wait. Loading data...</span>
-                <div
-                  className="spinner-border text-primary spinner-border-sm"
-                  role="status"
-                />
-              </div>
-              </Col>
-            </Row>
-            )} */}
           </>
         )}
         {!!tableData?.length && (
           <table
-            // className={!isReady
-            //   ? 'd-none'
-            //   : `${styles.Table} ${className || ''} table table-hover`
-            // }
             className={`${styles.Table} ${className || ''} table table-hover`}
             {...rest}
           >
@@ -247,7 +225,8 @@ const Table = (props) => {
                 </tr>
               </thead>
               <tbody ref={tableBodyRef}>
-                {tableData.map((record) => (
+                {/* {tableData.map((record) => ( */}
+                {resultWithActions.map((record) => (
                   <tr key={record.keyRecord} id={`${tableId}-${record.keyRecord}`}>
                     {columns.map((col) => (
                       <td key={col.id}>{record[col?.value]}</td>
@@ -259,8 +238,8 @@ const Table = (props) => {
           </table>
         )}
       </div>
-      {(/* isReady && */ hasPagination) && (
-        <Pagination pagination={{ page: 1, lastPage: 20 }} />
+      {hasPagination && (
+        <Pagination pagination={{ page: result?.length / 5, lastPage: 20 }} />
       )}
     </>
   );
