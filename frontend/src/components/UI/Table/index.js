@@ -35,6 +35,16 @@ const flattenObject = function(ob) {
   return toReturn;
 };
 
+const appendActions = (result, tableData) => result.map((item) => ({
+  ...item,
+  actions: tableData?.map((item) => ({
+    key: item.keyRecord,
+    content: item.actions,
+  })).find((actItem) =>
+    actItem.key.toString() === item.keyRecord.toString()
+  )?.content,
+}));
+
 const Table = (props) => {
   let timer = null;
   const tableBodyRef = createRef();
@@ -45,11 +55,13 @@ const Table = (props) => {
     tableInfo,
     tableData = [],
     columns = [],
-    hasPagination = false,
+    hasPagination = true, // set to false
+    recordsPerPage = 5,
     ...rest
   } = props;
-  // const [isReady, setReady] = useState(tableInfo?.hasSearch?.type !== 'date');
   const { control } = useForm({ mode: 'onBlur' });
+  const [idxStart, setIdxStart] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [result, setResult] = useState(
     tableData?.map((record) => flattenObject(record))
   );
@@ -79,6 +91,8 @@ const Table = (props) => {
     const flatted = tableData?.map((record) => flattenObject(record));
 
     setResult(flatted);
+    setIdxStart(1);
+    setCurrentPage(1);
     return setDataIndication(true);
   };
 
@@ -120,18 +134,12 @@ const Table = (props) => {
     setResult(tableData?.map((record) => flattenObject(record)));
   }, [tableData]);
 
-  const resultWithActions = result.map((item) => ({
-    ...item,
-    actions: tableData?.map((item) => ({
-      key: item.keyRecord,
-      content: item.actions,
-    })).find((actItem) =>
-      actItem.key.toString() === item.keyRecord.toString()
-    )?.content,
-  }));
-
-  // console.log(result, tableData);
-  // console.log(result, resultWithActions);
+  const resultWithActions = hasPagination && idxStart
+    ? appendActions(
+        result.slice(idxStart - 1).filter((_res, i) => i < recordsPerPage),
+        tableData
+      )
+    : appendActions(result, tableData)
 
   return (
     <>
@@ -184,12 +192,14 @@ const Table = (props) => {
                     onChange={(e) => {
                       if (!e.target.value) restoreRecords();
                       // setDate(e.target.value);
+                      setIdxStart(1);
                       onChange(e);
                       return null;
                     }}
                     onBlur={(e) => {
                       if (!e.target.value) return restoreRecords();
                       if (tableInfo?.hasSearch?.type === 'date') {
+                        setIdxStart(null);
                         return filterSearch(dayjs.utc(e.target.value)
                           .format('DD/MM/YYYY'));
                       }
@@ -239,7 +249,14 @@ const Table = (props) => {
         )}
       </div>
       {hasPagination && (
-        <Pagination pagination={{ page: result?.length / 5, lastPage: 20 }} />
+        <Pagination
+          recordsLength={result?.length}
+          maxPagesPerBar={5}
+          recordsPerPage={recordsPerPage}
+          setIdxStart={setIdxStart}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+        />
       )}
     </>
   );
