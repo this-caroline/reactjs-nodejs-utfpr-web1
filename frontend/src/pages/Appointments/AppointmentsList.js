@@ -27,16 +27,23 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
   if (!records || (!patientsTableId && !appointments)) return null;
 
   const columns = [
-    { name: 'Datetime', value: 'datetime', id: 1 },
-    { name: 'Insurance', value: 'insurance', id: 2 },
-    { name: 'Status', value: 'status', id: 3 },
+    {
+      name: 'Datetime',
+      value: 'datetime',
+      id: 1,
+      sort: true,
+      sortField: 'pureDatetime',
+      sortType: 'date',
+    },
+    { name: 'Insurance', value: 'insurance', id: 2, sort: true },
+    { name: 'Status', value: 'status', id: 3, sort: true },
   ];
 
   if (!patientsTableId) {
-    columns.push({ name: 'Patient', value: 'patientName', id: 4 });
+    columns.push({ name: 'Patient', value: 'patientName', id: 4, sort: true });
   }
 
-  columns.push({ name: 'Actions', value: 'actions', id: 5 });
+  columns.push({ name: 'Actions', value: 'actions', id: 5, sort: false });
 
   const handleConfirm = async (record) => {
     ConfirmAlert({
@@ -168,7 +175,9 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
     patientName: record?.Patient?.name || 'Not Provided',
     datetime: record.datetime
       ? new Date(record.datetime).toLocaleString()
+      // ? dayjs(record.datetime).format('DD/MM/YYYY HH:MM:ss')
       : 'Not Provided',
+    pureDatetime: record?.datetime,
     insurance: record?.Insurance?.name || 'None',
     status: record.isConfirmed ? 'Confirmed' : 'Not Confirmed',
     actions: !record.isConfirmed ? (

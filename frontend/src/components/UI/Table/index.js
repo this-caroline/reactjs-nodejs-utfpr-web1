@@ -1,6 +1,6 @@
 import React, { createRef, useCallback, useEffect, useState } from 'react';
 import { Button, Col, Input, Row } from 'reactstrap';
-import { Plus } from 'react-feather';
+import { ChevronDown, ChevronUp, Plus } from 'react-feather';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -65,6 +65,7 @@ const Table = (props) => {
   const [result, setResult] = useState(
     tableData?.map((record) => flattenObject(record))
   );
+  const [order, setOrder] = useState(true); // true = asc, false = desc
 
   const setDataIndication = useCallback((length) => {
     const noDataEl = document.getElementById('no-data-indication-paragraph');
@@ -133,6 +134,28 @@ const Table = (props) => {
   useEffect(() => {
     setResult(tableData?.map((record) => flattenObject(record)));
   }, [tableData]);
+
+  const sortItems = (column) => {
+    const sortField = column.sortField || column.value;
+
+    return result.sort((a, b) => {
+      if (!order) {
+        if (column.sortType === 'date') {
+          if (dayjs.utc(a[sortField]).isBefore(dayjs.utc(b[sortField]))) return -1;
+          if (dayjs.utc(a[sortField]).isAfter(dayjs.utc(b[sortField]))) return 1;
+          return 0;
+        }
+
+        if (a[sortField] < b[sortField]) return -1;
+        if (a[sortField] > b[sortField]) return 1;
+        return 0;
+      }
+
+      if (b[sortField] < a[sortField]) return -1;
+      if (b[sortField] > a[sortField]) return 1;
+      return 0;
+    });
+  };
 
   const resultWithActions = hasPagination && idxStart
     ? appendActions(
@@ -230,12 +253,31 @@ const Table = (props) => {
               <thead>
                 <tr>
                   {columns.map((column) => (
-                    <th key={column.value} scope="col">{column.name}</th>
+                    <th key={column.value} scope="col">
+                      <div className="d-flex">
+                        {column.name} {!!column.sort && (
+                          <div
+                            className="d-flex align-items-center ml-2"
+                            title="Click to order by this column"
+                            onClick={() => {
+                              const sorted = sortItems(column);
+
+                              setResult(sorted);
+                              setOrder((value) => !value);
+                            }}
+                          >
+                            {order
+                              ? <ChevronDown size="13" cursor="pointer" />
+                              : <ChevronUp size="13" cursor="pointer" />
+                            }
+                          </div>
+                        )}
+                      </div>
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody ref={tableBodyRef}>
-                {/* {tableData.map((record) => ( */}
                 {resultWithActions.map((record) => (
                   <tr key={record.keyRecord} id={`${tableId}-${record.keyRecord}`}>
                     {columns.map((col) => (
