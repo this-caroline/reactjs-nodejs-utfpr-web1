@@ -1,13 +1,13 @@
-import React, { createRef, useCallback, useEffect, useState } from 'react';
+import React, { createRef, useCallback, useState } from 'react';
 import { Button, Col, Input, Row } from 'reactstrap';
 import { ChevronDown, ChevronUp, Plus } from 'react-feather';
+import { Controller, useForm } from 'react-hook-form';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
 import styles from './Table.module.css';
 import Pagination from '../Pagination';
 import { getUniqueObject } from '../../../utils/unique';
-import { Controller, useForm } from 'react-hook-form';
 
 dayjs.extend(utc);
 
@@ -53,19 +53,54 @@ const Table = (props) => {
     children,
     className,
     tableInfo,
+    defaultSorted,
     tableData = [],
     columns = [],
-    hasPagination = true, // set to false
+    hasPagination = true,
     recordsPerPage = 5,
     ...rest
   } = props;
   const { control } = useForm({ mode: 'onBlur' });
   const [idxStart, setIdxStart] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+  const [order, setOrder] = useState(defaultSorted?.order || 'asc');
+
+  const sortItems = (arr, column) => {
+    const sortField = column.sortField || column.value;
+
+    const sorted = arr.sort((a, b) => {
+      if (order === 'asc') {
+        if (column.sortType === 'date') {
+          if (dayjs.utc(a[sortField]).isBefore(dayjs.utc(b[sortField]))) return -1;
+          if (dayjs.utc(a[sortField]).isAfter(dayjs.utc(b[sortField]))) return 1;
+          return 0;
+        }
+
+        if (a[sortField] < b[sortField]) return -1;
+        if (a[sortField] > b[sortField]) return 1;
+        return 0;
+      }
+
+      if (column.sortType === 'date') {
+        if (dayjs.utc(b[sortField]).isBefore(dayjs.utc(a[sortField]))) return -1;
+        if (dayjs.utc(b[sortField]).isAfter(dayjs.utc(a[sortField]))) return 1;
+        return 0;
+      }
+
+      if (b[sortField] < a[sortField]) return -1;
+      if (b[sortField] > a[sortField]) return 1;
+      return 0;
+    });
+
+    return sorted;
+  };
+
   const [result, setResult] = useState(
-    tableData?.map((record) => flattenObject(record))
+    sortItems(
+      tableData?.map((record) => flattenObject(record)),
+      defaultSorted?.value || columns?.[0]
+    )
   );
-  const [order, setOrder] = useState(true); // true = asc, false = desc
 
   const setDataIndication = useCallback((length) => {
     const noDataEl = document.getElementById('no-data-indication-paragraph');
@@ -131,31 +166,9 @@ const Table = (props) => {
     setDataIndication(found.length);
   }, [columns, setDataIndication, tableData]);
 
-  useEffect(() => {
-    setResult(tableData?.map((record) => flattenObject(record)));
-  }, [tableData]);
-
-  const sortItems = (column) => {
-    const sortField = column.sortField || column.value;
-
-    return result.sort((a, b) => {
-      if (!order) {
-        if (column.sortType === 'date') {
-          if (dayjs.utc(a[sortField]).isBefore(dayjs.utc(b[sortField]))) return -1;
-          if (dayjs.utc(a[sortField]).isAfter(dayjs.utc(b[sortField]))) return 1;
-          return 0;
-        }
-
-        if (a[sortField] < b[sortField]) return -1;
-        if (a[sortField] > b[sortField]) return 1;
-        return 0;
-      }
-
-      if (b[sortField] < a[sortField]) return -1;
-      if (b[sortField] > a[sortField]) return 1;
-      return 0;
-    });
-  };
+  // useEffect(() => {
+  //   setResult(tableData?.map((record) => flattenObject(record)));
+  // }, [tableData]);
 
   const resultWithActions = hasPagination && idxStart
     ? appendActions(
@@ -201,20 +214,18 @@ const Table = (props) => {
                 name="searchInput"
                 control={control}
                 defaultValue=""
+                // defaultValue={new Date().toISOString().split('T')[0]}
                 render={({ value, onChange }) => (
                   <Input
-                    // onChange={onChange}
                     value={value}
                     name="searchInput"
                     id="searchInput"
                     style={{ width: tableInfo?.hasSearch?.width || '280px' }}
                     type={tableInfo?.hasSearch?.type || 'text'}
                     placeholder={tableInfo?.hasSearch?.placeholder || 'Search...'}
-                    // disabled={!isReady}
                     className="form-control mb-3"
                     onChange={(e) => {
                       if (!e.target.value) restoreRecords();
-                      // setDate(e.target.value);
                       setIdxStart(1);
                       onChange(e);
                       return null;
@@ -260,13 +271,13 @@ const Table = (props) => {
                             className="d-flex align-items-center ml-2"
                             title="Click to order by this column"
                             onClick={() => {
-                              const sorted = sortItems(column);
+                              const sorted = sortItems(result, column);
 
                               setResult(sorted);
-                              setOrder((value) => !value);
+                              setOrder((value) => value === 'asc' ? 'desc' : 'asc');
                             }}
                           >
-                            {order
+                            {order === 'asc'
                               ? <ChevronDown size="13" cursor="pointer" />
                               : <ChevronUp size="13" cursor="pointer" />
                             }
