@@ -15,9 +15,9 @@ import AppointmentModal from '../../../pages/Appointments/AppointmentModal';
 
 const columns = [
   { name: 'Time', value: 'datetime' },
+  { name: 'Patient', value: 'patientName' },
   { name: 'Insurance', value: 'insurance' },
   { name: 'Status', value: 'status' },
-  { name: 'Patient', value: 'patientName' },
   { name: 'Actions', value: 'actions' },
 ];
 const times = [
@@ -52,7 +52,6 @@ const times = [
 const Schedule = (props) => {
   const {
     records,
-    patients,
     formatTableData,
     className,
     ...rest
@@ -85,9 +84,7 @@ const Schedule = (props) => {
       return {
         ...matchedRecord,
         status: (
-          <span
-            className={`${styles.Status} ${getAppointmentStatusClassName(matchedRecord.status)}`}
-          >
+          <span className={`${styles.Status} ${getAppointmentStatusClassName(matchedRecord.status)}`}>
             {matchedRecord.status || 'None'}
           </span>
         ),
@@ -184,7 +181,7 @@ const Schedule = (props) => {
             value={value}
             name="searchInput"
             id="searchInput"
-            disabled={!isReady || !patients}
+            disabled={!isReady}
             style={{ width: 280 }}
             placeholder="Date"
             className="form-control mb-3"

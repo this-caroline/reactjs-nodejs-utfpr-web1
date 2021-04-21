@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Col, Container, Form, FormGroup, Input, Row } from 'reactstrap';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
+import AsyncSelect from 'react-select/async';
 import dayjs, { utc } from 'dayjs';
 import Swal from 'sweetalert2';
 import * as Yup from 'yup';
@@ -19,19 +20,19 @@ import { Creators as AppointmentsActions } from '../../store/ducks/appointments/
 // import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 import { createAppointment, updateAppointment } from '../../services/requests/appointments';
 import { INTERNAL_ERROR_MSG } from '../../utils/contants';
+import { fetchPatients } from '../../services/requests/patients';
 
 dayjs.extend(utc);
 
-const validationSchema = Yup.object().shape({
-  date: Yup.string().required('Appointment date is required!'),
-  time: Yup.string().required('Appointment time is required!'),
-  insurance: Yup.string().nullable(true),
-});
-
 const AppointmentModal = ({ data, onClose, mode }) => {
+  const validationSchema = Yup.object().shape({
+    name: Yup.mixed().required('You must select a patient'),
+    date: Yup.string().required('Appointment date is required!'),
+    time: Yup.string().required('Appointment time is required!'),
+    insurance: Yup.string().nullable(true),
+  });
   const dispatch = useDispatch();
   const { appointments } = useSelector((state) => state.appointments);
-  const { patients } = useSelector((state) => state.patients);
   const insurances = useSelector((state) => state.insurances);
   const [isSubmitting, setSubmitting] = useState(false);
   const resolver = useYupValidationResolver(validationSchema);
@@ -53,12 +54,14 @@ const AppointmentModal = ({ data, onClose, mode }) => {
   const onSubmit = async (values) => {
     setSubmitting(true);
 
+    console.log('values:', values);
+
     const insId = parseInt(values.insurance);
     const payload = {
       datetime: `${dayjs.utc(values.date).format('YYYY-MM-DD')} ${values.time}:00`,
       isConfirmed: false,
       InsuranceId: ['NaN', NaN].includes(insId) ? null : insId,
-      PatientId: mode === 'new' ? values.name : data.PatientId,
+      PatientId: mode === 'new' ? values.name?.value : data.PatientId,
     };
 
     const response = mode === 'new'
@@ -131,12 +134,22 @@ const AppointmentModal = ({ data, onClose, mode }) => {
     };
   };
 
-  const formattedPatients = patients
-    ? [...patients].map((pat) => ({
-        label: pat.name,
-        value: pat.id,
-      }))
-    : [];
+  const loadOptions = async (inputValue, callback) => {
+    const response = await fetchPatients(inputValue);
+    let results = [];
+
+    if (response.success) {
+      results = response.data.patients;
+    }
+
+    const filteredResults = results?.filter(
+      (item) => item?.name?.toLowerCase()?.includes(inputValue?.toLowerCase())
+    );
+
+    return callback(filteredResults?.map(
+      (pat) => ({ label: pat.name, value: pat.id }))
+    );
+  };
 
   return (
     <ModalForm
@@ -148,31 +161,37 @@ const AppointmentModal = ({ data, onClose, mode }) => {
       }
       onClose={onClose}
       size="lg"
-      body={!insurances.insurances || !patients
+      body={!insurances.insurances
         ? <LoadingPage className="mb-3" message="Please wait. Loading data..." />
         : (
           <Form onSubmit={handleSubmit(onSubmit)} id="patient-modal-appointments">
             <Row>
               <Col>
                 <FormGroup>
-                  <RequiredLabel htmlFor="name">Name</RequiredLabel>
+                  <RequiredLabel htmlFor="name">Patient</RequiredLabel>
                   <Controller
                     name="name"
                     control={control}
                     defaultValue={mode === 'new'
-                      ? formattedPatients?.[0].value
-                      : data?.Patient?.name || ''
+                      ? ''
+                      : data?.Patient?.name || 'Not Identified'
                     }
                     render={({ onBlur, onChange, value }) => mode === 'new' ? (
-                      <Select
-                        options={patients ? formattedPatients : []}
-                        onBlur={onBlur}
-                        onChange={onChange}
-                        value={value}
+                      <AsyncSelect
+                        // cacheOptions
+                        noOptionsMessage={({ inputValue }) => (
+                          !inputValue
+                            ? "Please type a patient's name"
+                            : 'Patient not found'
+                        )}
+                        getOptionValue={(option) => option}
+                        onChange={(e) => onChange(e)}
+                        loadOptions={loadOptions}
+                        defaultOptions
+                        placeholder="Name"
                         name="name"
                         id="name"
-                        placeholder="Patient's name"
-                        hasError={!!errors.name}
+                        // hasError={!!errors.name}
                       />
                     ) : (
                       <Input
@@ -256,10 +275,12 @@ const AppointmentModal = ({ data, onClose, mode }) => {
                     name="time"
                     control={control}
                     defaultValue={
-                      new Date(data?.datetime)
-                        .toLocaleTimeString()
-                        .split('')
-                        .slice(0, 5).join('') || ''
+                      mode === 'new'
+                      ? data?.time?.toString()?.split('').slice(0, 5).join('')
+                      : new Date(data?.datetime)
+                          .toLocaleTimeString()
+                          .split('')
+                          .slice(0, 5).join('') || ''
                     }
                     render={({ onBlur, onChange, value }) => (
                       <Input

@@ -1,8 +1,12 @@
 import api from '../api';
 
-export const fetchPatients = async () => {
+export const fetchPatients = async (name) => {
   try {
-    const response = await api.get('/patient');
+    const response = await api.get(
+      name
+        ? `/patient?name=${name}`
+        : '/patient'
+    );
 
     if (response.status === 200) {
       return { success: true, data: response?.data };

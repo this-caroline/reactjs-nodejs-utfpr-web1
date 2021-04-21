@@ -5,14 +5,12 @@ import { Col, Container, Row } from 'reactstrap';
 import LoadingPage from '../../components/UI/LoadingPage';
 import AppointmentsList from './AppointmentsList';
 import { Creators as AppointmentsActions } from '../../store/ducks/appointments/reducer';
-import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 // import Schedule from '../../components/UI/Schedule';
 // import { fetchAppointments } from '../../services/requests/appointments';
 
 const Appointments = () => {
   const dispatch = useDispatch();
   const appointments  = useSelector((state) => state.appointments);
-  const patients  = useSelector((state) => state.patients);
 
   useEffect(() => {
     // (async () => {
@@ -22,12 +20,12 @@ const Appointments = () => {
     //     setAppointmentsList(response?.data?.appointments);
     //   } else setAppointmentsList('error');
     // })();
-    dispatch(PatientsActions.fetchPatients());
+    // dispatch(PatientsActions.fetchPatients());
     dispatch(AppointmentsActions.fetchAppointments());
   }, [dispatch]);
 
 
-  if (appointments?.loading || patients?.loading) {
+  if (appointments?.loading) {
     return <LoadingPage />;
   }
 
@@ -37,7 +35,6 @@ const Appointments = () => {
         <Col className="table-responsive">
           {/* <Schedule records={appointments || []} />  */}
           <AppointmentsList
-            patients={patients?.patients || []}
             records={appointments?.appointments || []}
             // setAppointmentsList={appointments}
           />
