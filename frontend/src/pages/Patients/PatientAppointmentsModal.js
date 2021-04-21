@@ -22,6 +22,7 @@ import {
 import { INTERNAL_ERROR_MSG } from '../../utils/contants';
 import Toast from '../../components/UI/Toast';
 import { getInsurances } from '../../utils/insurances';
+import { getTimes } from '../../utils/dates';
 
 dayjs.extend(utc);
 
@@ -266,15 +267,15 @@ const PatientAppointmentsModal = ({ onClose, pId }) => {
                   control={control}
                   defaultValue=""
                   render={({ onBlur, onChange, value }) => (
-                    <Input
+                    <Select
+                      options={getTimes()}
                       onChange={onChange}
                       onBlur={onBlur}
                       value={value}
-                      type="time"
                       name="time"
                       id="time"
                       placeholder="Time"
-                      className={errors.time ? 'is-invalid' : undefined}
+                      hasError={!!errors.time}
                     />
                   )}
                 />

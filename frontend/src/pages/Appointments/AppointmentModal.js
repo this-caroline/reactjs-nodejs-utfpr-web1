@@ -21,10 +21,12 @@ import { Creators as AppointmentsActions } from '../../store/ducks/appointments/
 import { createAppointment, updateAppointment } from '../../services/requests/appointments';
 import { INTERNAL_ERROR_MSG } from '../../utils/contants';
 import { fetchPatients } from '../../services/requests/patients';
+import { getTimes } from '../../utils/dates';
 
 dayjs.extend(utc);
 
 const AppointmentModal = ({ data, onClose, mode }) => {
+  let timer = null;
   const validationSchema = Yup.object().shape({
     name: Yup.mixed().required('You must select a patient'),
     date: Yup.string().required('Appointment date is required!'),
@@ -52,9 +54,14 @@ const AppointmentModal = ({ data, onClose, mode }) => {
   }, [dispatch]);
 
   const onSubmit = async (values) => {
-    setSubmitting(true);
+    if (mode === 'new' && !values.name?.value) {
+      return setError('name', {
+        type: 'manual',
+        message: 'You must select a patient!',
+      });
+    }
 
-    console.log('values:', values);
+    setSubmitting(true);
 
     const insId = parseInt(values.insurance);
     const payload = {
@@ -134,21 +141,25 @@ const AppointmentModal = ({ data, onClose, mode }) => {
     };
   };
 
-  const loadOptions = async (inputValue, callback) => {
-    const response = await fetchPatients(inputValue);
-    let results = [];
+  const loadOptions = (inputValue, callback) => {
+    clearTimeout(timer);
 
-    if (response.success) {
-      results = response.data.patients;
-    }
+    timer = setTimeout(async () => {
+      const response = await fetchPatients(inputValue);
+      let results = [];
 
-    const filteredResults = results?.filter(
-      (item) => item?.name?.toLowerCase()?.includes(inputValue?.toLowerCase())
-    );
+      if (response.success) {
+        results = response.data.patients;
+      }
 
-    return callback(filteredResults?.map(
-      (pat) => ({ label: pat.name, value: pat.id }))
-    );
+      const filteredResults = results?.filter(
+        (item) => item?.name?.toLowerCase()?.includes(inputValue?.toLowerCase())
+      );
+
+      return callback(filteredResults?.map(
+        (pat) => ({ label: pat.name, value: pat.id }))
+      );
+    }, 1200);
   };
 
   return (
@@ -187,7 +198,7 @@ const AppointmentModal = ({ data, onClose, mode }) => {
                         getOptionValue={(option) => option}
                         onChange={(e) => onChange(e)}
                         loadOptions={loadOptions}
-                        defaultOptions
+                        // defaultOptions
                         placeholder="Name"
                         name="name"
                         id="name"
@@ -248,7 +259,11 @@ const AppointmentModal = ({ data, onClose, mode }) => {
                   <Controller
                     name="date"
                     control={control}
-                    defaultValue={data?.datetime?.split('T')?.[0] || ''}
+                    defaultValue={
+                      mode === 'new'
+                      ? data?.date
+                      : data?.datetime?.split('T')?.[0] || ''
+                    }
                     render={({ onBlur, onChange, value }) => (
                       <Input
                         onChange={onChange}
@@ -283,15 +298,15 @@ const AppointmentModal = ({ data, onClose, mode }) => {
                           .slice(0, 5).join('') || ''
                     }
                     render={({ onBlur, onChange, value }) => (
-                      <Input
+                      <Select
+                        options={getTimes()}
                         onChange={onChange}
                         onBlur={onBlur}
                         value={value}
-                        type="time"
                         name="time"
                         id="time"
                         placeholder="Time"
-                        className={errors.time ? 'is-invalid' : undefined}
+                        hasError={!!errors.time}
                       />
                     )}
                   />

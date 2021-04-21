@@ -1,4 +1,4 @@
-import React, { createRef, useCallback, useState } from 'react';
+import React, { createRef, useCallback, useEffect, useState } from 'react';
 import { Button, Col, Input, Row } from 'reactstrap';
 import { ChevronDown, ChevronUp, Plus } from 'react-feather';
 import { Controller, useForm } from 'react-hook-form';
@@ -65,7 +65,7 @@ const Table = (props) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [order, setOrder] = useState(defaultSorted?.order || 'asc');
 
-  const sortItems = (arr, column) => {
+  const sortItems = useCallback((arr, column) => {
     const sortField = column.sortField || column.value;
 
     const sorted = arr.sort((a, b) => {
@@ -93,7 +93,7 @@ const Table = (props) => {
     });
 
     return sorted;
-  };
+  }, [order]);
 
   const [result, setResult] = useState(
     sortItems(
@@ -176,6 +176,17 @@ const Table = (props) => {
         tableData
       )
     : appendActions(result, tableData)
+
+  // console.log('result:', result);
+  // console.log('resultWithActions', resultWithActions);
+  // console.log('tableData:', tableData);
+
+  useEffect(() => {
+    setResult(sortItems(
+      tableData?.map((record) => flattenObject(record)),
+      defaultSorted?.value || columns?.[0]
+    ));
+  }, [columns, defaultSorted?.value, sortItems, tableData]);
 
   return (
     <>

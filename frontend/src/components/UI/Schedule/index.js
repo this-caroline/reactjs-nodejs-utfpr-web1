@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import styles from './Schedule.module.css';
 import TableActions from '../Table/TableActions';
 import { fetchAppointments } from '../../../services/requests/appointments';
-import { INTERNAL_ERROR_MSG } from '../../../utils/contants';
+import { INTERNAL_ERROR_MSG, TIMES } from '../../../utils/contants';
 import { Creators as AppointmentsActions } from '../../../store/ducks/appointments/reducer';
 // import { Creators as PatientsActions } from '../../../store/ducks/patients/reducer';
 import LoadingPage from '../LoadingPage';
@@ -19,34 +19,6 @@ const columns = [
   { name: 'Insurance', value: 'insurance' },
   { name: 'Status', value: 'status' },
   { name: 'Actions', value: 'actions' },
-];
-const times = [
-  '07:00:00',
-  '07:30:00',
-  '08:00:00',
-  '08:30:00',
-  '09:00:00',
-  '09:30:00',
-  '10:00:00',
-  '10:30:00',
-  '11:00:00',
-  '11:30:00',
-  '12:00:00',
-  '12:30:00',
-  '13:00:00',
-  '13:30:00',
-  '14:00:00',
-  '14:30:00',
-  '15:00:00',
-  '15:30:00',
-  '16:00:00',
-  '16:30:00',
-  '17:00:00',
-  '17:30:00',
-  '18:00:00',
-  '18:30:00',
-  '19:00:00',
-  '19:30:00',
 ];
 
 const Schedule = (props) => {
@@ -68,7 +40,7 @@ const Schedule = (props) => {
     return styles.Pending;
   };
 
-  const getSchedule = useCallback((data) => times.map((time) => {
+  const getSchedule = useCallback((data) => TIMES.map((time) => {
     let matchedRecord = null;
     const matched = data.some((record) => {
       const appointmentTime = new Date(record.pureDatetime)
@@ -153,7 +125,7 @@ const Schedule = (props) => {
       {!!appointmentModal && (
         <AppointmentModal
           mode="new"
-          data={appointmentModal.data}
+          data={{ ...appointmentModal.data, date }}
           onClose={() => setAppointmentModal(null)}
         />
       )}

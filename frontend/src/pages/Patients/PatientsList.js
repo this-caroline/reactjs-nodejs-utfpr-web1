@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Swal from 'sweetalert2';
 
 import Table from '../../components/UI/Table';
@@ -21,7 +21,7 @@ const columns = [
 
 const PatientsList = ({ records, setPatientModal }) => {
   const [appointmentsModal, setAppointmentsModal] = useState(null);
-  const { patients } = useSelector((state) => state.patients);
+  // const { patients } = useSelector((state) => state.patients);
   const dispatch = useDispatch();
 
   if (!records || !records?.length) return null;
@@ -39,7 +39,7 @@ const PatientsList = ({ records, setPatientModal }) => {
           if (response.success) {
             if (Swal.isVisible()) Swal.close();
 
-            dispatch(PatientsCreators.setPatients([...patients].filter(
+            dispatch(PatientsCreators.setPatients([...records].filter(
               (pat) => pat.id.toString() !== id.toString())
             ));
           } else throw new Error();
