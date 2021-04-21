@@ -1,5 +1,6 @@
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
+const { Op } = require("sequelize");
 
 const sequelize = require('../models').sequelize;
 const Address = require('../models').Address;
@@ -158,6 +159,9 @@ module.exports = {
           },
           { model: User, required: true, attributes: ['username'] },
         ],
+        where: request.query.name
+          ? { name: { [Op.like]: `${request.query.name}%` } }
+          : {}
       });
 
       return response.status(200).json({
