@@ -16,7 +16,8 @@ import { getInsurances } from '../../utils/insurances';
 import useYupValidationResolver from '../../utils/yupValidationResolver';
 import { Creators as InsurancesActions } from '../../store/ducks/insurances/reducer';
 import { Creators as AppointmentsActions } from '../../store/ducks/appointments/reducer';
-import { updateAppointment } from '../../services/requests/appointments';
+// import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
+import { createAppointment, updateAppointment } from '../../services/requests/appointments';
 import { INTERNAL_ERROR_MSG } from '../../utils/contants';
 
 dayjs.extend(utc);
@@ -27,9 +28,10 @@ const validationSchema = Yup.object().shape({
   insurance: Yup.string().nullable(true),
 });
 
-const AppointmentModal = ({ data, onClose }) => {
+const AppointmentModal = ({ data, onClose, mode }) => {
   const dispatch = useDispatch();
   const { appointments } = useSelector((state) => state.appointments);
+  const { patients } = useSelector((state) => state.patients);
   const insurances = useSelector((state) => state.insurances);
   const [isSubmitting, setSubmitting] = useState(false);
   const resolver = useYupValidationResolver(validationSchema);
@@ -44,7 +46,8 @@ const AppointmentModal = ({ data, onClose }) => {
   useEffect(() => {
     setTimeout(() => {
       dispatch(InsurancesActions.fetchInsurances());
-    }, 2500);
+      // dispatch(PatientsActions.fetchPatients());
+    }, 1500);
   }, [dispatch]);
 
   const onSubmit = async (values) => {
@@ -55,38 +58,62 @@ const AppointmentModal = ({ data, onClose }) => {
       datetime: `${dayjs.utc(values.date).format('YYYY-MM-DD')} ${values.time}:00`,
       isConfirmed: false,
       InsuranceId: ['NaN', NaN].includes(insId) ? null : insId,
-      PatientId: data.PatientId,
+      PatientId: mode === 'new' ? values.name : data.PatientId,
     };
 
-    const response = await updateAppointment(data.id, payload);
+    const response = mode === 'new'
+      ? await createAppointment(payload)
+      : await updateAppointment(data.id, payload);
 
     if (response.success) {
-      dispatch(
-        AppointmentsActions.setAppointments(
-          [...appointments].map((appnt) => {
-            if (appnt.id?.toString() === data.id?.toString()) {
-              return {
-                ...data,
-                ...response.data?.appointment,
-                Insurance: values.insurance
-                  ? {
-                      name: getInsurances(insurances?.insurances)
-                        .find((ins) =>
-                          ins?.value?.toString() === values?.insurance?.toString()
-                        )?.label,
-                      id: ['NaN', NaN, ''].includes(insId) ? null : insId,
-                    }
-                  : null,
-              };
+      if (mode === 'new') {
+        dispatch(
+          AppointmentsActions.setAppointments([
+            ...appointments,
+            {
+              ...response.data?.appointment,
+              Insurance: values.insurance
+                ? {
+                    name: getInsurances(insurances?.insurances)
+                      .find((ins) =>
+                        ins?.value?.toString() === values?.insurance?.toString()
+                      )?.label,
+                    id: ['NaN', NaN, ''].includes(insId) ? null : insId,
+                  }
+                : null,
             }
-
-            return appnt;
-          })
-        )
-      );
+          ])
+        );
+      } else {
+        dispatch(
+          AppointmentsActions.setAppointments(
+            [...appointments].map((appnt) => {
+              if (appnt.id?.toString() === data.id?.toString()) {
+                return {
+                  ...data,
+                  ...response.data?.appointment,
+                  Insurance: values.insurance
+                    ? {
+                        name: getInsurances(insurances?.insurances)
+                          .find((ins) =>
+                            ins?.value?.toString() === values?.insurance?.toString()
+                          )?.label,
+                        id: ['NaN', NaN, ''].includes(insId) ? null : insId,
+                      }
+                    : null,
+                };
+              }
+  
+              return appnt;
+            })
+          )
+        );
+      }
 
       Toast.fire({
-        title: 'The appointment was successfully updated!',
+        title: mode === 'new'
+          ? 'The appointment was successfully registered!'
+          : 'The appointment was successfully updated!',
         icon: 'success',
       });
       onClose();
@@ -104,13 +131,24 @@ const AppointmentModal = ({ data, onClose }) => {
     };
   };
 
+  const formattedPatients = patients
+    ? [...patients].map((pat) => ({
+        label: pat.name,
+        value: pat.id,
+      }))
+    : [];
+
   return (
     <ModalForm
-      title="Edit Appointment"
-      subTitle="Please fill in the fields bellow to edit this appointment."
+      title={mode === 'new' ? 'New Appointment' : 'Edit Appointment'}
+      subTitle={
+        mode === 'new'
+          ? 'Please fill in the fields below to make a new appointment.'
+          : 'Please fill in the fields below to edit this appointment.'
+      }
       onClose={onClose}
       size="lg"
-      body={!insurances.insurances
+      body={!insurances.insurances || !patients
         ? <LoadingPage className="mb-3" message="Please wait. Loading data..." />
         : (
           <Form onSubmit={handleSubmit(onSubmit)} id="patient-modal-appointments">
@@ -121,8 +159,22 @@ const AppointmentModal = ({ data, onClose }) => {
                   <Controller
                     name="name"
                     control={control}
-                    defaultValue={data?.Patient?.name || 'Not Provided'}
-                    render={({ onBlur, onChange, value }) => (
+                    defaultValue={mode === 'new'
+                      ? formattedPatients?.[0].value
+                      : data?.Patient?.name || ''
+                    }
+                    render={({ onBlur, onChange, value }) => mode === 'new' ? (
+                      <Select
+                        options={patients ? formattedPatients : []}
+                        onBlur={onBlur}
+                        onChange={onChange}
+                        value={value}
+                        name="name"
+                        id="name"
+                        placeholder="Patient's name"
+                        hasError={!!errors.name}
+                      />
+                    ) : (
                       <Input
                         onChange={onChange}
                         onBlur={onBlur}
@@ -242,7 +294,7 @@ const AppointmentModal = ({ data, onClose }) => {
                 disabled={isSubmitting}
                 outline
               >
-                Cancel Editing
+                {mode === 'new' ? 'Cancel' : 'Cancel Editing'}
               </Button>
 
               <Button

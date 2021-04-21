@@ -19,10 +19,9 @@ import Schedule from '../../components/UI/Schedule';
 
 dayjs.extend(utc);
 
-const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
+const AppointmentsList = ({ records, patientsTableId, setEditMode, patients }) => {
   const dispatch = useDispatch();
   const { appointments } = useSelector((state) => state.appointments);
-  const { patients } = useSelector((state) => state.patients);
   const [appointmentModal, setAppointmentModal] = useState(null);
 
   const handleDelete = useCallback(async (record) => {
@@ -258,7 +257,7 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
             }}
           />
         ) : (
-          <Schedule formatTableData={formatTableData} />
+          <Schedule formatTableData={formatTableData} patients={patients} />
         )
       }
     </>

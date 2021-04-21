@@ -5,14 +5,14 @@ import { Col, Container, Row } from 'reactstrap';
 import LoadingPage from '../../components/UI/LoadingPage';
 import AppointmentsList from './AppointmentsList';
 import { Creators as AppointmentsActions } from '../../store/ducks/appointments/reducer';
+import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 // import Schedule from '../../components/UI/Schedule';
 // import { fetchAppointments } from '../../services/requests/appointments';
 
 const Appointments = () => {
   const dispatch = useDispatch();
-  const { loading, appointments } = useSelector((state) => state.appointments);
-  // const [appointmentsList, setAppointmentsList] = useState(null);
-  // const [appointmentModal, setAppointmentModal] = useState(null);
+  const appointments  = useSelector((state) => state.appointments);
+  const patients  = useSelector((state) => state.patients);
 
   useEffect(() => {
     // (async () => {
@@ -22,14 +22,12 @@ const Appointments = () => {
     //     setAppointmentsList(response?.data?.appointments);
     //   } else setAppointmentsList('error');
     // })();
+    dispatch(PatientsActions.fetchPatients());
     dispatch(AppointmentsActions.fetchAppointments());
   }, [dispatch]);
 
-  // if (appointmentsList === 'error') {
-  //   return <h2>Something went wrong...</h2>;
-  // }
 
-  if (loading) {
+  if (appointments?.loading || patients?.loading) {
     return <LoadingPage />;
   }
 
@@ -39,8 +37,9 @@ const Appointments = () => {
         <Col className="table-responsive">
           {/* <Schedule records={appointments || []} />  */}
           <AppointmentsList
-            records={appointments || []}
-            setAppointmentsList={appointments}
+            patients={patients?.patients || []}
+            records={appointments?.appointments || []}
+            // setAppointmentsList={appointments}
           />
         </Col>
       </Row>

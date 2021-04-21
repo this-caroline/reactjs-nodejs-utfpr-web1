@@ -8,8 +8,10 @@ import TableActions from '../Table/TableActions';
 import { fetchAppointments } from '../../../services/requests/appointments';
 import { INTERNAL_ERROR_MSG } from '../../../utils/contants';
 import { Creators as AppointmentsActions } from '../../../store/ducks/appointments/reducer';
+// import { Creators as PatientsActions } from '../../../store/ducks/patients/reducer';
 import LoadingPage from '../LoadingPage';
 import { useDispatch, useSelector } from 'react-redux';
+import AppointmentModal from '../../../pages/Appointments/AppointmentModal';
 
 const columns = [
   { name: 'Time', value: 'datetime' },
@@ -50,13 +52,15 @@ const times = [
 const Schedule = (props) => {
   const {
     records,
+    patients,
     formatTableData,
     className,
     ...rest
   } = props;
   const { control } = useForm({ mode: 'onBlur' });
   const [loading, setLoading] = useState(false);
-  
+  const [appointmentModal, setAppointmentModal] = useState(null);
+
   const getAppointmentStatusClassName = (stts) => {
     if (['confirmed', 'checked', 'confirmado'].includes(stts.toLowerCase())) {
       return styles.Confirmed;
@@ -105,7 +109,7 @@ const Schedule = (props) => {
         <TableActions
           add={{
             visible: true,
-            onClick: () => console.log('clicked to make an appointment...'),
+            onClick: () => setAppointmentModal({ data: { time } }),
             title:  'Click to make a new appointment'
           }}
         />
@@ -114,6 +118,7 @@ const Schedule = (props) => {
   }), []);
   const { date } = useSelector((state) => state.appointments);
   const dispatch = useDispatch();
+  // const { patients } = useSelector((state) => state.patients);
   const [appointments, setAppointments] = useState(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -139,10 +144,22 @@ const Schedule = (props) => {
     }
   }, [date, formatTableData, getSchedule]);
 
+  // useEffect(() => {
+  //   console.log('vou despachar patients...');
+  //   dispatch(PatientsActions.fetchPatients());
+  // }, [dispatch]);
+
   if (isReady === 'error') return <h2>{INTERNAL_ERROR_MSG}</h2>;
 
   return (
     <div className="table-responsive w-100">
+      {!!appointmentModal && (
+        <AppointmentModal
+          mode="new"
+          data={appointmentModal.data}
+          onClose={() => setAppointmentModal(null)}
+        />
+      )}
       <Row className="mr-2">
         <Col>
           <h3
@@ -167,7 +184,7 @@ const Schedule = (props) => {
             value={value}
             name="searchInput"
             id="searchInput"
-            disabled={!isReady}
+            disabled={!isReady || !patients}
             style={{ width: 280 }}
             placeholder="Date"
             className="form-control mb-3"
@@ -221,7 +238,7 @@ const Schedule = (props) => {
                     </tr>
                   )
                   : (
-                    appointments.map((record) => (
+                    appointments?.map((record) => (
                       <tr key={record.datetime}>
                         {columns.map((col) => (
                           <td key={col.value}>{record[col.value]}</td>
@@ -236,7 +253,10 @@ const Schedule = (props) => {
         )
         :
         (
-          <LoadingPage align="start" message="Please wait. Loading appointments..." />
+          <LoadingPage
+            align="start"
+            message="Please wait. Loading appointments..."
+          />
         )
       }
     </div>

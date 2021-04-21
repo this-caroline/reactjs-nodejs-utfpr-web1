@@ -6,7 +6,7 @@ import PatientsList from './PatientsList';
 import PatientModal from './PatientModal';
 import LoadingPage from '../../components/UI/LoadingPage';
 import { Creators as InsurancesActions } from '../../store/ducks/insurances/reducer';
-import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
+// import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 
 const Patients = () => {
   const insurances = useSelector((state) => state.insurances);
@@ -16,7 +16,10 @@ const Patients = () => {
 
   useEffect(() => {
     dispatch(InsurancesActions.fetchInsurances());
-    dispatch(PatientsActions.fetchPatients());
+    
+    // if (!patients) {
+      
+    // }
   }, [dispatch]);
 
   if (!patients || !insurances) return <LoadingPage />;
