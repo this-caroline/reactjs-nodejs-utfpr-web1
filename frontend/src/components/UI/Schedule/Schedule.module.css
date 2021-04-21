@@ -1,0 +1,62 @@
+.Table {
+  box-shadow: 1px 0px 5px rgb(221, 221, 221);
+}
+
+.Table {
+  border: 1px solid rgb(221, 221, 221);
+  margin-bottom: 0;
+}
+
+.Table:hover {
+  background-color: rgb(226, 248, 239);
+}
+
+.Table thead {
+  background-color: rgb(191, 215, 236);
+}
+
+.Table tbody tr {
+  background-color: rgb(245, 245, 245);
+}
+
+.Status {
+  color: #FFF;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 14px;
+}
+
+.Free {
+  background-color: rgb(141, 139, 139);
+}
+
+.Confirmed {
+  background-color: #02d37c;
+}
+
+.Pending {
+  background-color: #ffc107;
+}
+
+@media (max-width: 500px) {
+  .Table {
+    padding: 2%;
+    font-size: 14px;
+  }
+
+  .Status {
+    padding: 3px 5px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 540px) {
+  .Table h4 {
+    font-size: 15px;
+  }
+
+  .Status {
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+}

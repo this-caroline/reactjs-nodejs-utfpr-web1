@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
@@ -15,6 +15,7 @@ import ConfirmAlert from '../../components/UI/ConfirmAlert';
 import { Creators as PatientsActions } from '../../store/ducks/patients/reducer';
 import { Creators as AppointmentsActions } from '../../store/ducks/appointments/reducer';
 import AppointmentModal from './AppointmentModal';
+import Schedule from '../../components/UI/Schedule';
 
 dayjs.extend(utc);
 
@@ -24,28 +25,60 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
   const { patients } = useSelector((state) => state.patients);
   const [appointmentModal, setAppointmentModal] = useState(null);
 
-  if (!records || (!patientsTableId && !appointments)) return null;
+  const handleDelete = useCallback(async (record) => {
+    ConfirmAlert({
+      hasLoading: true,
+      text: 'This appointment will be permanently deleted.',
+      confirmButtonText: 'Yes, delete appointment',
+      cancelButtonText: 'No, keep this appointment',
+      onConfirm: async () => {
+        try {
+          const { success } = await deleteAppointment(record.id);
 
-  const columns = [
-    {
-      name: 'Datetime',
-      value: 'datetime',
-      id: 1,
-      sort: true,
-      sortField: 'pureDatetime',
-      sortType: 'date',
-    },
-    { name: 'Insurance', value: 'insurance', id: 2, sort: true },
-    { name: 'Status', value: 'status', id: 3, sort: true },
-  ];
+          if (success) {
+            const patId = record?.Patient?.id.toString() ||
+              record?.PatientId.toString();
 
-  if (!patientsTableId) {
-    columns.push({ name: 'Patient', value: 'patientName', id: 4, sort: true });
-  }
+            if (appointments) {
+              dispatch(
+                AppointmentsActions.setAppointments(
+                  [...appointments].filter(
+                    (appnt) => appnt.id?.toString() !== record.id?.toString())
+                )
+              );
+            }
 
-  columns.push({ name: 'Actions', value: 'actions', id: 5, sort: false });
+            if (patients) {
+              dispatch(
+                PatientsActions.setPatients(
+                  [...patients].map((patient) => {
+                    if (patient.id.toString() === patId) {
+                      return {
+                        ...patient,
+                        Appointments: [...patient.Appointments].filter(
+                          (appnt) => appnt.id.toString() !== record.id.toString()
+                        )
+                      };
+                    }
+  
+                    return patient;
+                  })
+                )
+              );
+            }
 
-  const handleConfirm = async (record) => {
+            if (setEditMode) setEditMode(null);
+            if (Swal.isVisible()) Swal.close();
+          } else throw new Error();
+        } catch (error) {
+          if (Swal.isVisible()) Swal.close();
+          Swal.fire('Unexpected error', UNEXPECTED_ERROR_MSG, 'error');
+        }
+      },
+    });
+  }, [appointments, dispatch, patients, setEditMode]);
+
+  const handleConfirm = useCallback(async (record) => {
     ConfirmAlert({
       hasLoading: true,
       text: "Once confirmed you'll no longer be able to edit or delete this appointment.",
@@ -100,7 +133,7 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
                     if (appnt.id?.toString() === record.id?.toString()) {
                       return { ...record, isConfirmed: true };
                     }
-    
+
                     return appnt;
                   })
                 )
@@ -115,71 +148,20 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
         }
       }
     });
-  };
+  }, [appointments, dispatch, patients]);
 
-  const handleDelete = async (record) => {
-    ConfirmAlert({
-      hasLoading: true,
-      text: 'This appointment will be permanently deleted.',
-      confirmButtonText: 'Yes, delete appointment',
-      cancelButtonText: 'No, keep this appointment',
-      onConfirm: async () => {
-        try {
-          const { success } = await deleteAppointment(record.id);
-
-          if (success) {
-            const patId = record?.Patient?.id.toString() ||
-              record?.PatientId.toString();
-
-            if (appointments) {
-              dispatch(
-                AppointmentsActions.setAppointments(
-                  [...appointments].filter(
-                    (appnt) => appnt.id?.toString() !== record.id?.toString())
-                )
-              );
-            }
-
-            if (patients) {
-              dispatch(
-                PatientsActions.setPatients(
-                  [...patients].map((patient) => {
-                    if (patient.id.toString() === patId) {
-                      return {
-                        ...patient,
-                        Appointments: [...patient.Appointments].filter(
-                          (appnt) => appnt.id.toString() !== record.id.toString()
-                        )
-                      };
-                    }
-  
-                    return patient;
-                  })
-                )
-              );
-            }
-
-            if (setEditMode) setEditMode(null);
-            if (Swal.isVisible()) Swal.close();
-          } else throw new Error();
-        } catch (error) {
-          if (Swal.isVisible()) Swal.close();
-          Swal.fire('Unexpected error', UNEXPECTED_ERROR_MSG, 'error');
-        }
-      },
-    });
-  };
-
-  const tableData = records.map((record) => ({
+  const formatTableData = useCallback((list, completeDate = true) => list.map((record) => ({
     keyRecord: record.id,
     patientName: record?.Patient?.name || 'Not Provided',
     datetime: record.datetime
-      ? new Date(record.datetime).toLocaleString()
+      ? completeDate
+        ? new Date(record.datetime).toLocaleString()
+        : new Date(record.datetime).toLocaleTimeString()
       // ? dayjs(record.datetime).format('DD/MM/YYYY HH:MM:ss')
       : 'Not Provided',
     pureDatetime: record?.datetime,
     insurance: record?.Insurance?.name || 'None',
-    status: record.isConfirmed ? 'Confirmed' : 'Not Confirmed',
+    status: record.isConfirmed ? 'Confirmed' : 'Pending',
     actions: !record.isConfirmed ? (
       <TableActions
         check={{
@@ -216,7 +198,28 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
         }}
       />
     ) : 'No Actions',
-  }));
+  })), [handleConfirm, handleDelete, patientsTableId, setEditMode]);
+
+  if (!records || (!patientsTableId && !appointments)) return null;
+
+  const columns = [
+    {
+      name: 'Datetime',
+      value: 'datetime',
+      id: 1,
+      sort: true,
+      sortField: 'pureDatetime',
+      sortType: 'date',
+    },
+    { name: 'Insurance', value: 'insurance', id: 2, sort: true },
+    { name: 'Status', value: 'status', id: 3, sort: true },
+  ];
+
+  if (!patientsTableId) {
+    columns.push({ name: 'Patient', value: 'patientName', id: 4, sort: true });
+  }
+
+  columns.push({ name: 'Actions', value: 'actions', id: 5, sort: false });
 
   const getMessage = () => {
     if (patientsTableId) {
@@ -238,22 +241,32 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
           onClose={appointmentModal.onClose}
         /> 
       )}
-      <Table
-        columns={columns}
-        tableData={tableData.sort((a, b) => a - b)}
-        tableId={patientsTableId || 'schedule-table'}
-        tableInfo={{
-          visible: true,
-          // showDateInfo: !patientsTableId,
-          hasSearch: {
-            type: patientsTableId ? 'text' : 'date',
-          },
-          title: 'Appointments',
-          message: getMessage(),
-        }}
-      />
+      {
+        patientsTableId ? (
+          <Table
+            columns={columns}
+            tableData={formatTableData(records).sort((a, b) => a - b)}
+            tableId={patientsTableId || 'schedule-table'}
+            tableInfo={{
+              visible: true,
+              // showDateInfo: !patientsTableId,
+              hasSearch: {
+                type: patientsTableId ? 'text' : 'date',
+              },
+              title: 'Appointments',
+              message: getMessage(),
+            }}
+          />
+        ) : (
+          <Schedule formatTableData={formatTableData} />
+        )
+      }
     </>
   );
+
+  // return (
+  //   <Schedule formatTableData={formatTableData} />
+  // );
 };
 
 export default AppointmentsList;

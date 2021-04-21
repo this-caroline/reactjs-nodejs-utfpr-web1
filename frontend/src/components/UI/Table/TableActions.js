@@ -1,6 +1,14 @@
 
 import React from 'react';
-import { Search, Edit, Trash, X, Calendar, CheckCircle } from 'react-feather';
+import {
+  PlusCircle,
+  Search,
+  Edit,
+  Trash,
+  X,
+  Calendar,
+  CheckCircle,
+} from 'react-feather';
 
 /**
  * @param {Object} check - Object with check/confirmation properties.
@@ -11,6 +19,7 @@ import { Search, Edit, Trash, X, Calendar, CheckCircle } from 'react-feather';
  * @param {Object} remove - Object with remove properties.
  */
 const TableActions = ({
+  add,
   view,
   check,
   calendar,
@@ -26,6 +35,16 @@ const TableActions = ({
             cursor="pointer"
             size="16"
             color={view.color || '#669de6'}
+          />
+        </span>
+      )}
+
+      {add?.visible && (
+        <span onClick={add.onClick} title={add.title} className="mr-3">
+          <PlusCircle
+            cursor="pointer"
+            size="16"
+            color={add.color || '#669de6'}
           />
         </span>
       )}

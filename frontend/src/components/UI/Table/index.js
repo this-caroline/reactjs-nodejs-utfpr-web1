@@ -213,7 +213,7 @@ const Table = (props) => {
               <Controller
                 name="searchInput"
                 control={control}
-                defaultValue=""
+                defaultValue={tableInfo?.hasSearch?.defaultValue || ''}
                 // defaultValue={new Date().toISOString().split('T')[0]}
                 render={({ value, onChange }) => (
                   <Input

@@ -1,8 +1,11 @@
 import api from '../api';
 
-export const fetchAppointments = async () => {
+export const fetchAppointments = async (date) => {
   try {
-    const response = await api.get('/appointment');
+    const response = await api.get(
+      date ? `/appointment?date=${date}` : '/appointment'
+    );
+
     if (response.status === 200) {
       return { success: true, data: response?.data };
     } else throw new Error();
