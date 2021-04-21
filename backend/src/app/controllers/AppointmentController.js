@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 
+const sequelize = require('../models').sequelize;
 const Insurance = require('../models').Insurance;
 const Patient = require('../models').Patient;
 const Appointment = require('../models').Appointment;
@@ -107,12 +108,24 @@ module.exports = {
 
   async index (request, response) {
     try {
-      const appointments = await Appointment.findAll({
-        include: [
-          { model: Insurance, required: false },
-          { model: Patient, required: true },
-        ],
-      });
+      const appointments = request.query.date
+        ? await Appointment.findAll({
+            include: [
+              { model: Insurance, required: false },
+              { model: Patient, required: true },
+            ],
+            where: {
+              [Op.and]: [
+                sequelize.literal(`DATE(datetime) = '${request.query.date}'`)
+              ]
+            },
+          })
+        : await Appointment.findAll({
+            include: [
+              { model: Insurance, required: false },
+              { model: Patient, required: true },
+            ],
+          });
 
       return response.status(200).json({
         success: true,
