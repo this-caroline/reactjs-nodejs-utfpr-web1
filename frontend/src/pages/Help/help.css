@@ -1,0 +1,65 @@
+#help-content-header {
+  background-color: #669de6;
+  padding: 50px;
+  margin-top: -16px;
+  padding-top: 50px;
+  color: #FFF;
+  text-shadow: 1px 0px 0px rgb(235, 235, 235);
+  border-bottom: 1px solid rgb(74, 136, 207);
+}
+
+#help-content-header h1 {
+  font-size: 45px;
+}
+
+#help-content-header p {
+  margin-top: 30px;
+  text-shadow: none;
+  font-size: 16px;
+}
+
+#help-content-body {
+  margin: auto;
+  padding: 40px;
+  background-color: #FFF;
+}
+
+#help-content-body h4 {
+  font-weight: bold;
+  font-size: 29px;
+  text-shadow: 1px 1px 0px rgb(168, 168, 168);
+  margin-bottom: 30px;
+}
+
+#help-content-body .faq-container h6 {
+  font-weight: bold;
+  font-size: 20px;
+  color: rgb(70, 67, 67);
+  /* text-shadow: 1px 0px 0px rgb(177, 177, 177); */
+  margin: 40px 0 10px 0;
+}
+
+#help-content-body .faq-container {
+  border-bottom: 1px solid rgb(231, 229, 229);
+  padding-bottom: 10px;
+}
+
+#help-content-body #help-content-contact-container {
+  width: 100%;
+  /* margin: auto; */
+  margin-top: 30px;
+}
+
+#help-content-contact-container h6 {
+  font-weight: bold;
+  margin: 40px 0;
+  font-size: 25px;
+  text-shadow: 1px 1px 0px rgb(226, 225, 225);
+  color: rgb(83, 83, 83);
+}
+
+
+#help-content-contact-container form input,
+#help-content-contact-container form textarea {
+  max-width: 400px;
+}
