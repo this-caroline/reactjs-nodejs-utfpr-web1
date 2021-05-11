@@ -18,7 +18,7 @@ const Help = () => {
 
       <div id="help-content-body">
         <h4>Frequently Asked Questions</h4>
-        <div class="faq-container">
+        <div className="faq-container">
           <h6>At vero eos et accusamus et iusto odio?</h6>
           <p>
             Dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque
@@ -28,7 +28,7 @@ const Help = () => {
           </p>
         </div>
 
-        <div class="faq-container">
+        <div className="faq-container">
           <h6>Nulla ac eleifend est, eu blandit libero?</h6>
           <p>
             Dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque
@@ -40,7 +40,7 @@ const Help = () => {
           </p>
         </div>
 
-        <div class="faq-container">
+        <div className="faq-container">
           <h6>Abeatae vitae dicta sunt explicabo?</h6>
           <p>
             Dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque
@@ -54,7 +54,7 @@ const Help = () => {
           </p>
         </div>
 
-        <div class="faq-container">
+        <div className="faq-container">
           <h6>Quis autem vel eum iure reprehenderit?</h6>
           <p>
             Dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque
@@ -71,7 +71,7 @@ const Help = () => {
           </p>
         </div>
 
-        <div class="faq-container">
+        <div className="faq-container">
           <h6>Dolorem eum fugiat?</h6>
           <p>
             Dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque

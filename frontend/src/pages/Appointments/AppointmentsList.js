@@ -263,10 +263,6 @@ const AppointmentsList = ({ records, patientsTableId, setEditMode }) => {
       }
     </>
   );
-
-  // return (
-  //   <Schedule formatTableData={formatTableData} />
-  // );
 };
 
 export default AppointmentsList;
