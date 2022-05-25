@@ -3,7 +3,7 @@ const User = require('../models').User;
 
 module.exports = {
   async store (request, response) {
-    const { name, UserId } = request.body;
+    const { name, UserId, phone } = request.body;
 
     try {
       const checkEmail = await Insurance.findOne({ where: { name } });
@@ -13,7 +13,7 @@ module.exports = {
         message: 'O seguinte plano já existe '+name
       });;
 
-      const insurance = await Insurance.create({ name, UserId });
+      const insurance = await Insurance.create({ name, UserId, phone });
 
       if (!insurance ) throw new Error();
 
@@ -33,7 +33,7 @@ module.exports = {
 
   async update (request, response) {
     const { id } = request.params;
-    const { name, UserId } = request.body;
+    const { name, UserId, phone } = request.body;
 
     try {
       const insurance = await Insurance.findByPk(id, {
@@ -44,6 +44,7 @@ module.exports = {
 
       insurance.name = name;
       insurance.UserId = UserId;
+      insurance.phone = phone;
 
       await insurance.save();
 

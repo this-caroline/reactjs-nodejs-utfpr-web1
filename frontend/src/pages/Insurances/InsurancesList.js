@@ -15,6 +15,7 @@ const columns = [
   { name: 'Created At', value: 'createdAt', id: 3 },
   { name: 'Last Modified By', value: 'username', id: 4 },
   { name: 'Actions', value: 'actions', id: 5 },
+  { name: 'Phone', value: 'phone', id: 6 },
 ];
 
 const InsurancesList = ({ records, setInsuranceModal }) => {
@@ -68,6 +69,7 @@ const InsurancesList = ({ records, setInsuranceModal }) => {
     keyRecord: record?.id,
     id: record?.id || 'Not Provided',
     name: record?.name || 'Not Provided',
+    phone: record?.phone || 'Not Provided',
     createdAt: record?.createdAt
       ? new Date(record?.createdAt).toLocaleString()
       : 'Not Provided',

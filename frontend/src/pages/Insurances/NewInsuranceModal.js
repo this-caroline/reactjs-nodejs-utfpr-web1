@@ -36,10 +36,10 @@ const InsuranceModal = ({ data, mode, onClose }) => {
     errors,
   } = useForm({ resolver, mode: 'onBlur' });
 
-  const onSubmit = async ({ name }) => {
+  const onSubmit = async ({ name, phone }) => {
     setSubmitting(true);
 
-    const payload = { name, UserId: auth?.user.userId };
+    const payload = { name, UserId: auth?.user.userId, phone };
 
     try {
       const response = mode === 'include'
@@ -110,6 +110,27 @@ const InsuranceModal = ({ data, mode, onClose }) => {
               />
               {errors.name &&
                 <InvalidInputMessage message={errors.name?.message} />
+              }
+              <RequiredLabel htmlFor="phone">Telefone de contato</RequiredLabel>
+              <Controller
+                name="phone"
+                control={control}
+                defaultValue={data?.phone || ''}
+                render={({ onChange, onBlur, value }) => (
+                  <Input
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    type="text"
+                    name="phone"
+                    id="phone"
+                    placeholder="Insurance phone"
+                    className={errors.name ? 'is-invalid' : undefined}
+                  />
+                )}
+              />
+              {errors.phone &&
+                <InvalidInputMessage message={errors.phone?.message} />
               }
             </FormGroup>
             <Container className="mt-4 mb-3 d-flex justify-content-center flex-wrap">
