@@ -56,9 +56,14 @@ const Nav = ({ history }) => {
             id={`main-menu-list-item-${item.path || item.id}`}
             onClick={() => {
               if (item.path === '/logout') {
-                localStorage.clear();
-                dispatch(AuthActions.logout());
-                return history.push('/login');
+                // eslint-disable-next-line no-restricted-globals
+                if (confirm("Are you sure you want to logout?")) {
+                  localStorage.clear();
+                  dispatch(AuthActions.logout());
+                  return history.push("/login");
+                } else {
+                  return
+                }
               }
 
               return history.push(item.path);
