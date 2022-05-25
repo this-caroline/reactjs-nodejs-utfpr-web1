@@ -1,50 +1,62 @@
-import React, {
-  useCallback,
-  useEffect,
-  useState
-} from 'react';
-import { withRouter } from 'react-router';
-import { useDispatch } from 'react-redux';
+import React, { useCallback, useEffect, useState } from "react";
+import { withRouter } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
 
-import styles from './Menu.module.css';
-import MobileMenu from './MobileMenu';
-import { Creators as AuthActions } from '../../../store/ducks/auth/reducer';
+import styles from "./Menu.module.css";
+import MobileMenu from "./MobileMenu";
+import reducer, {
+  Creators as AuthActions,
+} from "../../../store/ducks/auth/reducer";
 
 const maxW = 755;
-const menuItems = [
+const items = [
   {
     id: 1,
-    title: 'Click to manage appointments',
-    label: 'Appointments',
-    path: '/appointments'
+    title: "Click to manage appointments",
+    label: "Appointments",
+    path: "/appointments",
   },
   {
     id: 2,
-    title: 'Click to manage patients',
-    label: 'Patients',
-    path: '/patients'
+    title: "Click to manage patients",
+    label: "Patients",
+    path: "/patients",
   },
   {
     id: 3,
-    title: 'Click to manage insurances',
-    label: 'Insurances',
-    path: '/insurances'
+    title: "Click to manage insurances",
+    label: "Insurances",
+    path: "/insurances",
   },
   {
     id: 4,
-    title: 'Click to get help',
-    label: 'Help',
-    path: '/help'
+    title: "Click to get help",
+    label: "Help",
+    path: "/help",
   },
   {
     id: 5,
-    title: 'Click to sign out',
-    label: 'Logout',
-    path: '/logout'
+    title: "Click to sign out",
+    label: "Logout",
+    path: "/logout",
   },
 ];
 
 const Nav = ({ history }) => {
+  const [menuItems, setMenuItems] = useState(items);
+  const { user } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (user.username === "user") {
+      console.log(123);
+      setMenuItems(
+        menuItems.filter(
+          (item) => item.id === 5 || item.id === 4 || item.id === 1
+        )
+      );
+    }
+  }, [user, menuItems]);
+
   const dispatch = useDispatch();
 
   return (
@@ -55,21 +67,21 @@ const Nav = ({ history }) => {
             key={item.id}
             id={`main-menu-list-item-${item.path || item.id}`}
             onClick={() => {
-              if (item.path === '/logout') {
+              if (item.path === "/logout") {
                 // eslint-disable-next-line no-restricted-globals
                 if (confirm("Are you sure you want to logout?")) {
                   localStorage.clear();
                   dispatch(AuthActions.logout());
                   return history.push("/login");
                 } else {
-                  return
+                  return;
                 }
               }
 
               return history.push(item.path);
             }}
             title={item.title}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: "pointer" }}
           >
             {item.label}
           </li>
@@ -95,9 +107,9 @@ const Menu = ({ history }) => {
   }, [mobileMenu, displayMenu]);
 
   useEffect(() => {
-    window.addEventListener('resize', handleChangeWidth);
+    window.addEventListener("resize", handleChangeWidth);
 
-    menuItems.forEach((item) => {
+    items.forEach((item) => {
       const menuItem = document.getElementById(
         `main-menu-list-item-${item.path || item.id}`
       );
@@ -111,25 +123,30 @@ const Menu = ({ history }) => {
       }
     });
 
-    return () => window.removeEventListener('resize', handleChangeWidth);
+    return () => window.removeEventListener("resize", handleChangeWidth);
   }, [handleChangeWidth, mobileMenu, history.location.pathname]);
 
   return (
     <>
-      {displayMenu &&
+      {displayMenu && (
         <React.Fragment>
-          <div className={styles.Backdrop} onClick={() => setDisplayMenu(false)} />
+          <div
+            className={styles.Backdrop}
+            onClick={() => setDisplayMenu(false)}
+          />
           <div className={styles.HamburgerMenuContent}>
             <Nav history={history} />
           </div>
         </React.Fragment>
-      }
+      )}
 
       {!mobileMenu ? (
         <div className={styles.MainMenu}>
           <Nav history={history} />
         </div>
-      ) : <MobileMenu displayMenuItems={() => setDisplayMenu(true)} />}
+      ) : (
+        <MobileMenu displayMenuItems={() => setDisplayMenu(true)} />
+      )}
     </>
   );
 };
