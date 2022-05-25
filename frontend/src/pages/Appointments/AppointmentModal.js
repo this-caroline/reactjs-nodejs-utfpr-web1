@@ -268,6 +268,7 @@ const AppointmentModal = ({ data, onClose, mode }) => {
                       <Input
                         onChange={onChange}
                         onBlur={onBlur}
+                        min={new Date().toISOString().split('T')[0]}
                         value={value}
                         type="date"
                         name="date"
