@@ -125,7 +125,7 @@ const PatientModal = ({
             AddressId: data?.Address?.id,
           }
         );
-
+   
       if (response.success) {
         const updatedPatients = mode === 'include'
           ? [

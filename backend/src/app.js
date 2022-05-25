@@ -18,5 +18,3 @@ app.use(routes);
 
 app.listen(port, () => console.log(`Server is running at localhost:${port}`));
 
-// const createUser = require('./utils/createUser');
-// (async () => await createUser())();

@@ -32,10 +32,18 @@ module.exports = {
       neighborhood,
     } = request.body;
 
+    const checkCpf = await Patient.findOne({ where: { cpf } });
+    
+    if (checkCpf) return response.status(422).json({
+      success: false,
+      status: 422,
+      message: 'O seguinte cpf já existe '+cpf
+    });;
+
     try {
       const patient = await Patient.create({
         name,
-        UserId,
+        UserId: 1,
         email,
         birthdate: dayjs.utc(birthdate).format('YYYY-MM-DD'),
         cpf,

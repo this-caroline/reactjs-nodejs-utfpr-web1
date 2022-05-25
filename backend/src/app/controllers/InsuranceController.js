@@ -6,9 +6,16 @@ module.exports = {
     const { name, UserId } = request.body;
 
     try {
+      const checkEmail = await Insurance.findOne({ where: { name } });
+      if (checkEmail) return response.status(422).json({
+        success: false,
+        status: 422,
+        message: 'O seguinte plano já existe '+name
+      });;
+
       const insurance = await Insurance.create({ name, UserId });
 
-      if (!insurance) throw new Error();
+      if (!insurance ) throw new Error();
 
       return response.status(200).json({
         success: true,

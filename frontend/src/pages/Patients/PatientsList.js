@@ -35,7 +35,7 @@ const PatientsList = ({ records, setPatientModal }) => {
       onConfirm: async () => {
         try {
           const response = await deletePatient(id);
-          
+   
           if (response.success) {
             if (Swal.isVisible()) Swal.close();
 
