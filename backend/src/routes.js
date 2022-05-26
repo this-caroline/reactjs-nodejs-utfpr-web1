@@ -17,6 +17,7 @@ Router.post('/session', SessionController.store);
 Router.post('/appointment', AppointmentController.store);
 Router.put('/appointment/:id', AppointmentController.update);
 Router.get('/appointment', AppointmentController.index);
+Router.get('/appointment/:id', AppointmentController.show);
 Router.delete('/appointment/:id', AppointmentController.destroy);
 
 // INSURANCES

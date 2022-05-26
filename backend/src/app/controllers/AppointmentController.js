@@ -91,7 +91,11 @@ module.exports = {
     const { id } = request.params;
 
     try {
-      const appointments = await Appointment.findByPk(id);
+      const appointments = await Appointment.findOne({
+        where: {
+          [Op.and]: [{id}, {isConfirmed: 1}]
+        }
+      });
 
       return response.status(200).json({
         success: true,
