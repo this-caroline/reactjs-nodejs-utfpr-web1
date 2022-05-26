@@ -17,6 +17,12 @@ const items = [
     path: "/appointments",
   },
   {
+    id: 6,
+    title: "Click to manage Schedule",
+    label: "Schedule",
+    path: "/confirmed-schedule",
+  },
+  {
     id: 2,
     title: "Click to manage patients",
     label: "Patients",
